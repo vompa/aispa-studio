@@ -22,9 +22,8 @@ internal sealed class RegisterConfirmation
 
 internal sealed partial class PosService
 {
-    internal async Task<List<(Guid RegisterId, PosErrorKind Error)>> ScheduleYearlyAsync(DateTimeOffset now, CancellationToken ct)
+    internal async Task ScheduleYearlyAsync(DateTimeOffset now, Action<Guid, PosErrorKind> failed, CancellationToken ct)
     {
-        var failures = new List<(Guid, PosErrorKind)>();
         var candidates = await (from r in db.CashRegisters.AsNoTracking()
                                 join location in db.Locations on r.LocationId equals location.Id
                                 where r.IsActive && r.Country == FiscalCountry.AT
@@ -34,17 +33,38 @@ internal sealed partial class PosService
         {
             var local = TimeZoneInfo.ConvertTime(now, LocalTime.Zone(candidate.TimeZone));
             if (local.Month == 12 && local.Day == 31 && local.Hour == 23 && local.Minute >= 30
-                && !IsOtherSite(candidate.Register) && await FiscalReadyAsync(candidate.Register, ct))
+                && !IsOtherSite(candidate.Register) && !await ScheduledAsync(candidate.Register, local.Year, ct)
+                && await FiscalReadyAsync(candidate.Register, ct))
             {
                 var result = await YearlyReceiptAsync(candidate.Register.Id, ct);
                 if (result.Error is { } error)
                 {
-                    failures.Add((candidate.Register.Id, error.Kind));
+                    failed(candidate.Register.Id, error.Kind);
                 }
             }
         }
-        return failures;
     }
+
+    private Task<bool> ScheduledAsync(CashRegister register, int year, CancellationToken ct) =>
+        db.Database.SqlQuery<int>($"""
+            SELECT 1 AS "Value" FROM aispa_maintenance.fiscal_history_checkpoint m
+            JOIN aispa."CashRegisters" c ON c."Id" = m.register_id AND c."TenantId" = m.tenant_id
+            WHERE c."Id" = {register.Id} AND ({db.AllTenants} OR c."TenantId" = {db.CurrentTenantId})
+              AND m.register_code = c."Code" AND m.scheduled_year = {year}
+              AND m.scheduled_nr = c."LastReceiptNumber" AND m.scheduled_counter = c."TurnoverCounter"
+              AND NOT EXISTS (SELECT 1 FROM aispa."Receipts" r WHERE r."RegisterId" = c."Id"
+                  AND r."TenantId" = c."TenantId" AND r."Number" > c."LastReceiptNumber")
+            """).AnyAsync(ct);
+
+    private Task<int> MarkScheduledAsync(CashRegister register, int year, CancellationToken ct) =>
+        db.Database.ExecuteSqlAsync($"""
+            INSERT INTO aispa_maintenance.fiscal_history_checkpoint
+                (tenant_id, register_id, register_code, scheduled_year, scheduled_nr, scheduled_counter)
+            SELECT "TenantId", "Id", "Code", {year}, {register.LastReceiptNumber}, {register.TurnoverCounter}
+            FROM aispa."CashRegisters" WHERE "Id" = {register.Id} AND ({db.AllTenants} OR "TenantId" = {db.CurrentTenantId})
+            ON CONFLICT (tenant_id, register_id) DO UPDATE SET scheduled_year = excluded.scheduled_year,
+                scheduled_nr = excluded.scheduled_nr, scheduled_counter = excluded.scheduled_counter
+            """, ct);
 
     internal async Task<(YearlyReceiptStatusDto? Status, List<RegisterConfirmationDto> Confirmations, List<string> Warnings,
         List<YearlyReceiptStatusDto> Pending)> ClosingStatusAsync(
@@ -111,6 +131,10 @@ internal sealed partial class PosService
         public bool Unknown { get; } = rows.Count == 0 || rows.Any(r => r.Year == null || r.Uncertain);
         public DateTime? LastLocal { get; } = rows.FirstOrDefault(r => r.Tag == 2)?.Local;
         public IEnumerable<int> Years => _activity.Keys.Order();
+        public decimal TotalCents => _activity.Values.Sum(r => r.Amount) * 100m;
+        public bool HasYearly => _closures.Count != 0;
+        public decimal[] PendingCounters(int year) => Years.Where(y => y < year && Valid(y) == null)
+            .Select(y => EndCounter(y) * 100m).Distinct().ToArray();
         public bool Attempted(int year) => _closures.Any(r => r.Year == year);
         private decimal EndCounter(int year) => _activity.Where(p => p.Key <= year).Sum(p => p.Value.Amount);
         public bool CanClose(int year, long counter) => !Unknown && EndCounter(year) * 100m == counter;
@@ -130,18 +154,69 @@ internal sealed partial class PosService
 
     private sealed record FiscalYearRow(int Tag, int? Year, long Number, decimal Amount, Guid? Id, bool Signed, bool Uncertain, DateTime? Local);
 
-    private async Task<FiscalYearHistory> FiscalYearsAsync(CashRegister register, CancellationToken ct)
+    private sealed record HistoryCheckpoint(long Number, DateOnly? FiscalDate, long Counter, decimal[] Pending);
+
+    private async Task<DateOnly?> PrepareYearsAsync(CashRegister register, DateTimeOffset now, TimeZoneInfo zone, CancellationToken ct)
+    {
+        var year = LocalTime.LocalDate(now, zone).Year;
+        var checkpoint = await db.Database.SqlQuery<HistoryCheckpoint>($"""
+            SELECT through_nr AS "Number", fiscal_date AS "FiscalDate", turnover AS "Counter", pending AS "Pending"
+            FROM aispa_maintenance.fiscal_history_checkpoint
+            WHERE register_id = {register.Id} AND register_code = {register.Code}
+              AND ({db.AllTenants} OR tenant_id = {db.CurrentTenantId})
+              AND NOT EXISTS (SELECT 1 FROM aispa."Receipts" r WHERE r."RegisterId" = {register.Id}
+                AND r."TenantId" = tenant_id AND r."Number" > {register.LastReceiptNumber})
+            """).SingleOrDefaultAsync(ct);
+        if (checkpoint is { Number: > 0, FiscalDate: { } date } && date.Year == year
+            && checkpoint.Number <= register.LastReceiptNumber && !checkpoint.Pending.Contains(register.TurnoverCounter))
+        {
+            if (checkpoint.Number == register.LastReceiptNumber && checkpoint.Counter == register.TurnoverCounter)
+            {
+                return date;
+            }
+            var tail = await FiscalYearsAsync(register, ct, checkpoint.Number);
+            if (!tail.Unknown && !tail.HasYearly && tail.LastLocal is { } last
+                && tail.Years.All(y => y == year) && checkpoint.Counter + tail.TotalCents == register.TurnoverCounter)
+            {
+                await StoreCheckpointAsync(register, last, checkpoint.Pending, ct);
+                return DateOnly.FromDateTime(last);
+            }
+        }
+
+        var history = await FiscalYearsAsync(register, ct);
+        if (!history.Unknown && history.LastLocal is { } head && head.Year == year && history.Years.All(y => y <= year)
+            && history.TotalCents == register.TurnoverCounter)
+        {
+            await StoreCheckpointAsync(register, head, history.PendingCounters(year), ct);
+        }
+        await CloseEarlierYearsAsync(register, history, year, zone, now, ct);
+        return history.LastLocal is { } local ? DateOnly.FromDateTime(local) : null;
+    }
+
+    private Task<int> StoreCheckpointAsync(CashRegister register, DateTime stamp, decimal[] pending, CancellationToken ct) =>
+        db.Database.ExecuteSqlAsync($"""
+            INSERT INTO aispa_maintenance.fiscal_history_checkpoint
+                (tenant_id, register_id, register_code, through_nr, fiscal_date, turnover, pending)
+            SELECT "TenantId", "Id", "Code", {register.LastReceiptNumber}, {DateOnly.FromDateTime(stamp)}, {register.TurnoverCounter}, {pending}
+            FROM aispa."CashRegisters" WHERE "Id" = {register.Id} AND ({db.AllTenants} OR "TenantId" = {db.CurrentTenantId})
+            ON CONFLICT (tenant_id, register_id) DO UPDATE SET register_code = excluded.register_code, through_nr = excluded.through_nr,
+                fiscal_date = excluded.fiscal_date, turnover = excluded.turnover, pending = excluded.pending
+            """, ct);
+
+    private async Task<FiscalYearHistory> FiscalYearsAsync(CashRegister register, CancellationToken ct, long through = 0)
     {
         // PostgreSQL fasst die unveränderlichen RKSV-Daten auf eine Zeile je Betriebsjahr und je
         // Jahresbeleg zusammen. Kein Belegkörper und keine Signatur verlassen dafür die Datenbank.
-        var rows = await db.Database.SqlQuery<FiscalYearRow>($$"""
+        var query = db.Database.SqlQuery<FiscalYearRow>($$"""
             WITH parts AS (
                 SELECT r."Id" AS id, r."Number" AS nr, r."ClosingYear" AS target, r."Kind" AS kind,
                        NOT r."SignatureDeviceFailed" AND r."FiscalSignature" IS NOT NULL AS signed,
                        string_to_array(r."FiscalCode", '_') AS f
                 FROM aispa."Receipts" r JOIN aispa."CashRegisters" c
                     ON c."Id" = r."RegisterId" AND c."TenantId" = r."TenantId"
-                WHERE r."RegisterId" = {{register.Id}} AND ({{db.AllTenants}} OR r."TenantId" = {{db.CurrentTenantId}})
+                WHERE r."RegisterId" = {{register.Id}} AND r."Number" BETWEEN {{(through == 0 ? long.MinValue : checked(through + 1))}}
+                    AND {{(through == 0 ? long.MaxValue : register.LastReceiptNumber)}}
+                  AND ({{db.AllTenants}} OR r."TenantId" = {{db.CurrentTenantId}})
             ), facts AS (
                 SELECT *, CASE WHEN cardinality(f) = 14 AND f[2] LIKE 'R1-%' AND f[3] = {{register.Code}}
                     AND f[4] = nr::text AND f[5] ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$'
@@ -151,7 +226,7 @@ internal sealed partial class PosService
                 FROM parts
             ), chain AS (
                 SELECT *, extract(year FROM stamp)::int AS yr, lag(extract(year FROM stamp)::int) OVER seq AS prev,
-                       row_number() OVER seq AS ordinal, sum(gross) OVER seq AS running
+                       {{through}} + row_number() OVER seq AS ordinal, sum(gross) OVER seq AS running
                 FROM facts WINDOW seq AS (ORDER BY nr)
             )
             SELECT 0 AS "Tag", yr AS "Year", max(nr) AS "Number", coalesce(sum(gross), 0) AS "Amount",
@@ -162,8 +237,8 @@ internal sealed partial class PosService
                    coalesce(target > yr, false), stamp FROM chain WHERE kind = 'Yearly'
             UNION ALL
             (SELECT 2, yr, nr, 0, NULL::uuid, false, nr <> {{register.LastReceiptNumber}}, stamp FROM chain ORDER BY nr DESC LIMIT 1)
-            """).ToListAsync(ct);
-        return new(rows);
+            """);
+        return new(await (through == 0 ? query : query.TagWith("RKSV-Nachlauf")).ToListAsync(ct));
     }
 
     private async Task<bool> CloseEarlierYearsAsync(CashRegister register, FiscalYearHistory history, int currentYear,
@@ -246,12 +321,24 @@ internal sealed partial class PosService
                 throw PosFailure.Conflict("Der Jahresendstand ist aus der Belegkette nicht eindeutig bestimmbar.");
             }
             var added = await CloseEarlierYearsAsync(register, history, today.Year, zone, time.GetUtcNow(), ct);
+            var earlierComplete = !history.Years.Any(y => y < today.Year && history.Valid(y) == null
+                && history.CanClose(y, register.TurnoverCounter)
+                && !db.Receipts.Local.Any(r => r.RegisterId == register.Id && r.ClosingYear == y
+                    && !r.SignatureDeviceFailed && r.FiscalSignature != null && db.Entry(r).State == EntityState.Added));
             if (!added && history.Valid(today.Year) is { } existing)
             {
+                if (earlierComplete)
+                {
+                    await MarkScheduledAsync(register, today.Year, ct);
+                }
                 return await db.Receipts.AsNoTracking().SingleAsync(r => r.Id == existing, ct);
             }
             var receipt = await IssueAsync(register, ReceiptKind.Yearly, ct, automatic: false);
             receipt.ClosingYear = today.Year;
+            if (earlierComplete && !receipt.SignatureDeviceFailed && receipt.FiscalSignature != null)
+            {
+                await MarkScheduledAsync(register, today.Year, ct);
+            }
             return receipt;
         }, ct);
 
@@ -339,6 +426,13 @@ internal sealed partial class YearlyReceiptScheduler(IServiceScopeFactory scopes
 
     internal async Task RunOnceAsync(CancellationToken ct)
     {
+        var now = time.GetUtcNow().UtcDateTime;
+        // Weltweit liegt der lokale 31.12. ab 23:30 zwischen UTC+14 und UTC−12.
+        if (!(now.Month == 12 && now.Day == 31 && now.TimeOfDay >= new TimeSpan(9, 30, 0))
+            && !(now.Month == 1 && now.Day == 1 && now.Hour < 12))
+        {
+            return;
+        }
         await using var catalog = scopes.CreateAsyncScope();
         var tenants = await catalog.ServiceProvider.GetRequiredService<AispaDbContext>().Tenants
             .Where(t => t.LockedAt == null).Select(t => t.Id).ToListAsync(ct);
@@ -346,11 +440,8 @@ internal sealed partial class YearlyReceiptScheduler(IServiceScopeFactory scopes
         {
             await using var scope = scopes.CreateAsyncScope();
             scope.ServiceProvider.GetRequiredService<TenantContext>().Use(tenantId);
-            var failures = await scope.ServiceProvider.GetRequiredService<PosService>().ScheduleYearlyAsync(time.GetUtcNow(), ct);
-            foreach (var failure in failures)
-            {
-                RegisterFailed(logger, failure.RegisterId, failure.Error);
-            }
+            await scope.ServiceProvider.GetRequiredService<PosService>()
+                .ScheduleYearlyAsync(time.GetUtcNow(), (id, error) => RegisterFailed(logger, id, error), ct);
         }
     }
 

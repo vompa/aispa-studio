@@ -179,7 +179,7 @@ internal static class PosEndpoints
 
         group.MapGet("/setup", async (Guid? locationId, AccessService access, PosService pos, CancellationToken ct) =>
             {
-                var registers = await pos.RegistersAsync((await access.CurrentAsync(ct))!, locationId, ct);
+                var registers = await pos.RegisterReadinessAsync((await access.CurrentAsync(ct))!, locationId, ct);
                 var state = registers.Select(r => r.Readiness!.State).DefaultIfEmpty(FiscalReadinessState.NotReady).Max();
                 return new PosSetupDto(state, state switch
                 {

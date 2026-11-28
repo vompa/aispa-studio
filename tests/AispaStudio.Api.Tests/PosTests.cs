@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -857,6 +858,8 @@ public sealed class PosTests(ApiFixture fixture)
             scope.ServiceProvider.GetRequiredService<FiscalCredentialStore>());
         var register = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
 
+        var scheduler = ActivatorUtilities.CreateInstance<YearlyReceiptScheduler>(scope.ServiceProvider, clock);
+        Assert.Equal(0, await CommandCount.OfAsync(() => scheduler.RunOnceAsync(Ct)));
         clock.Now = new(2027, 2, 1, 9, 0, 0, TimeSpan.Zero);
         var february = (await pos.NullReceiptAsync(register.Id, Ct)).Value!;
         clock.Now = new(2028, 1, 2, 9, 0, 0, TimeSpan.Zero);
@@ -883,7 +886,10 @@ public sealed class PosTests(ApiFixture fixture)
         var concurrent = ActivatorUtilities.CreateInstance<PosService>(concurrentScope.ServiceProvider, clock);
         var secondary = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
         var manualRace = concurrent.YearlyReceiptAsync(register.Id, Ct);
-        await Task.WhenAll(pos.ScheduleYearlyAsync(clock.Now, Ct), manualRace);
+        await Task.WhenAll(pos.ScheduleYearlyAsync(clock.Now, (id, error) => Assert.Fail($"{id}: {error}"), Ct), manualRace);
+        Assert.Equal(0, await CommandCount.OfAsync(() =>
+            pos.ScheduleYearlyAsync(clock.Now, (id, error) => Assert.Fail($"{id}: {error}"), Ct),
+            sql => sql.CommandText.Contains("WITH parts AS", StringComparison.Ordinal)));
         var scheduledId = await db.Receipts.Where(r => r.RegisterId == register.Id && r.ClosingYear == 2028)
             .OrderByDescending(r => r.Number).Select(r => r.Id).FirstAsync(Ct);
         var scheduled = (await pos.YearlyReceiptAsync(register.Id, Ct)).Value!;
@@ -1059,10 +1065,11 @@ public sealed class PosTests(ApiFixture fixture)
             CREATE TABLE aispa."Receipts" ("Id" uuid PRIMARY KEY, "RegisterId" uuid REFERENCES aispa."CashRegisters", "TenantId" uuid REFERENCES aispa."Tenants");
             """, Ct);
         var migration = new AispaStudio.Api.Data.Migrations.FiscalYearlyReceipts();
-        async Task MigrateAsync(bool up)
+        async Task MigrateAsync(bool up, Migration? selected = null)
         {
             await using var tx = await db.Database.BeginTransactionAsync(Ct);
-            var ops = up ? migration.UpOperations : migration.DownOperations;
+            selected ??= migration;
+            var ops = up ? selected.UpOperations : selected.DownOperations;
             foreach (var command in db.GetService<IMigrationsSqlGenerator>().Generate(ops, db.GetService<IDesignTimeModel>().Model))
             {
                 await db.Database.ExecuteSqlRawAsync(command.CommandText, Ct);
@@ -1081,6 +1088,26 @@ public sealed class PosTests(ApiFixture fixture)
         await MigrateAsync(true);
         Assert.Equal(2028, await db.Database.SqlQuery<int>($"""SELECT "ClosingYear" AS "Value" FROM aispa."Receipts" WHERE "Id" = {receipt}""").SingleAsync(Ct));
         Assert.Equal("tester", await db.Database.SqlQuery<string>($"""SELECT "ConfirmedBy" AS "Value" FROM aispa."RegisterConfirmation" WHERE "ReceiptId" = {receipt}""").SingleAsync(Ct));
+
+        var checkpoints = new AispaStudio.Api.Data.Migrations.FiscalHistoryCheckpoint();
+        await db.Database.ExecuteSqlRawAsync("""ALTER TABLE aispa."Receipts" ADD COLUMN "Number" bigint NOT NULL DEFAULT 1""", Ct);
+        await MigrateAsync(true, checkpoints);
+        var backfill = Guid.NewGuid();
+        await db.Database.ExecuteSqlAsync($"""
+            INSERT INTO aispa_maintenance.fiscal_history_checkpoint (tenant_id,register_id,through_nr) VALUES ({tenant},{register},10);
+            INSERT INTO aispa."Receipts" ("Id","TenantId","RegisterId","Number") VALUES ({backfill},{tenant},{register},2)
+            """, Ct);
+        async Task<long> WatermarkAsync() => await db.Database.SqlQuery<long>($"""
+            SELECT through_nr AS "Value" FROM aispa_maintenance.fiscal_history_checkpoint WHERE tenant_id={tenant} AND register_id={register}
+            """).SingleAsync(Ct);
+        Assert.Equal(0, await WatermarkAsync());
+        await db.Database.ExecuteSqlAsync($"""
+            UPDATE aispa_maintenance.fiscal_history_checkpoint SET through_nr=10 WHERE tenant_id={tenant} AND register_id={register};
+            DELETE FROM aispa."Receipts" WHERE "Id"={backfill}
+            """, Ct);
+        Assert.Equal(0, await WatermarkAsync());
+        await MigrateAsync(false, checkpoints);
+        Assert.Equal(2028, await db.Database.SqlQuery<int>($"""SELECT "ClosingYear" AS "Value" FROM aispa."Receipts" WHERE "Id" = {receipt}""").SingleAsync(Ct));
     }
 
     [Fact]
@@ -1430,6 +1457,163 @@ public sealed class PosTests(ApiFixture fixture)
 
         Assert.True(forOne > 0);
         Assert.Equal(forOne, forThree);
+    }
+
+    [Fact]
+    public async Task Scheduler_meldet_den_Kassenfehler_vor_dem_Abbruch_der_naechsten_Kassa()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var now = new DateTimeOffset(2028, 12, 31, 22, 30, 0, TimeSpan.Zero);
+        var pos = ActivatorUtilities.CreateInstance<PosService>(scope.ServiceProvider, new MovableTime(now));
+        var first = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
+        var second = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
+        var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+        var firstYearly = (await pos.YearlyReceiptAsync(first.Id, Ct)).Value!;
+        var secondYearly = (await pos.YearlyReceiptAsync(second.Id, Ct)).Value!;
+        await using var writer = fixture.Factory.Services.CreateAsyncScope();
+        writer.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var other = ActivatorUtilities.CreateInstance<PosService>(writer.ServiceProvider, new MovableTime(now));
+        var otherDb = writer.ServiceProvider.GetRequiredService<AispaDbContext>();
+        Assert.Null((await other.NullReceiptAsync(second.Id, Ct)).Error);
+        await otherDb.CashRegisters.Where(r => r.Id == second.Id).ExecuteUpdateAsync(
+            set => set.SetProperty(r => r.LastReceiptNumber, secondYearly.Number), Ct);
+
+        var checkingMarker = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var written = new ManualResetEventSlim();
+        var rejected = new List<(Guid, PosErrorKind)>();
+        var scheduler = Task.Run(() => CommandCount.OfAsync(() =>
+            pos.ScheduleYearlyAsync(now, (id, error) => rejected.Add((id, error)), Ct), command =>
+            {
+                if (command.CommandText.Contains("scheduled_nr", StringComparison.Ordinal) && checkingMarker.TrySetResult())
+                {
+                    if (!written.Wait(TimeSpan.FromSeconds(30), Ct))
+                    {
+                        throw new TimeoutException("Der andere Kassenvorgang hat die Markerprüfung nicht erreicht.");
+                    }
+                }
+                return false;
+            }), Ct);
+        try
+        {
+            await checkingMarker.Task.WaitAsync(TimeSpan.FromSeconds(30), Ct);
+            Assert.Null((await other.NullReceiptAsync(first.Id, Ct)).Error);
+        }
+        finally
+        {
+            written.Set();
+        }
+        await scheduler;
+        var latestYearly = await db.Receipts.Where(r => r.RegisterId == first.Id && r.ClosingYear == 2028)
+            .MaxAsync(r => r.Number, Ct);
+        Assert.Multiple(
+            () => Assert.True(latestYearly > firstYearly.Number),
+            () => Assert.Contains((second.Id, PosErrorKind.Conflict), rejected));
+
+        await db.Receipts.Where(r => r.RegisterId == first.Id || r.RegisterId == second.Id)
+            .ExecuteUpdateAsync(set => set.SetProperty(r => r.FiscalCode, (string?)null), Ct);
+        using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(Ct);
+        var errors = new List<(Guid, PosErrorKind)>();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => pos.ScheduleYearlyAsync(now, (id, error) =>
+        {
+            errors.Add((id, error));
+            cancellation.Cancel();
+        }, cancellation.Token));
+        var failure = Assert.Single(errors);
+        Assert.Contains(failure.Item1, new[] { first.Id, second.Id });
+        Assert.Equal(PosErrorKind.Conflict, failure.Item2);
+    }
+
+    [Theory]
+    [InlineData(365)]
+    [InlineData(7300)]
+    public async Task Normaler_Beleg_prueft_nur_den_neuen_Kettenabschnitt(int length)
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        var register = await CreateRegisterAsync(spa);
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+        var pos = scope.ServiceProvider.GetRequiredService<PosService>();
+        await db.Database.ExecuteSqlAsync($$"""
+            INSERT INTO aispa."Receipts"
+            SELECT (jsonb_populate_record(NULL::aispa."Receipts", to_jsonb(r) || jsonb_build_object(
+                'Id', gen_random_uuid(), 'Kind', 'Null', 'Number', n,
+                'FiscalCode', replace(r."FiscalCode", '_' || r."Number" || '_', '_' || n || '_')))).*
+            FROM aispa."Receipts" r CROSS JOIN generate_series(2, {{length}}) n
+            WHERE r."RegisterId" = {{register.Id}} AND r."Number" = 1;
+            UPDATE aispa."CashRegisters" SET "LastReceiptNumber" = {{length}} WHERE "Id" = {{register.Id}};
+            ANALYZE aispa."Receipts";
+            """, Ct);
+        Assert.Null((await pos.NullReceiptAsync(register.Id, Ct)).Error);
+        await using var explain = db.Database.GetDbConnection().CreateCommand();
+        var scans = await CommandCount.OfAsync(async () => Assert.Null((await pos.NullReceiptAsync(register.Id, Ct)).Error),
+            command =>
+            {
+                if (command.CommandText.Contains("RKSV-Nachlauf", StringComparison.Ordinal))
+                {
+                    explain.CommandText = "EXPLAIN (ANALYZE, FORMAT JSON) " + command.CommandText;
+                    foreach (Npgsql.NpgsqlParameter parameter in command.Parameters)
+                    {
+                        explain.Parameters.Add(parameter.Clone());
+                    }
+                }
+                return IsFullHistory(command);
+            });
+        Assert.Equal(0, scans);
+        await db.Database.OpenConnectionAsync(Ct);
+        try
+        {
+            using var plan = JsonDocument.Parse((string)(await explain.ExecuteScalarAsync(Ct))!);
+            var scan = Assert.Single(ReceiptScans(plan.RootElement[0].GetProperty("Plan")));
+            Assert.Equal(1, scan.GetProperty("Actual Rows").GetInt32());
+            Assert.True(!scan.TryGetProperty("Rows Removed by Filter", out var removed) || removed.GetInt32() <= 2, scan.GetRawText());
+        }
+        finally
+        {
+            await db.Database.CloseConnectionAsync();
+        }
+
+        var access = new AispaStudio.Api.Access.UserAccess("tester", StaffRole.Owner, true, new HashSet<Guid>(), null);
+        Assert.Equal(0, await CommandCount.OfAsync(async () =>
+        {
+            Assert.Single(await pos.RegisterReadinessAsync(access, spa.Location.Id, Ct));
+            Assert.Equal(register.Id, (await pos.SelectOnlineRegisterAsync(spa.Location.Id, Ct))?.Id);
+        }, sql => IsFullHistory(sql) || sql.CommandText.Contains("RegisterConfirmation", StringComparison.Ordinal)
+            || sql.CommandText.Contains("TurnoverKey", StringComparison.Ordinal)));
+        await using var writer = fixture.Factory.Services.CreateAsyncScope();
+        writer.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var otherDb = writer.ServiceProvider.GetRequiredService<AispaDbContext>();
+        async Task TouchPrefixAsync() => await otherDb.Database.ExecuteSqlAsync($"""
+            UPDATE aispa."Receipts" SET "FiscalCode" = NULL WHERE "RegisterId" = {register.Id} AND "Number" = 2
+            """, Ct);
+        await using (var transaction = await otherDb.Database.BeginTransactionAsync(Ct))
+        {
+            await TouchPrefixAsync();
+            await transaction.RollbackAsync(Ct);
+        }
+        Assert.Equal(0, await CommandCount.OfAsync(() => pos.NullReceiptAsync(register.Id, Ct), IsFullHistory));
+        await TouchPrefixAsync();
+        Assert.Equal(1, await CommandCount.OfAsync(() => pos.NullReceiptAsync(register.Id, Ct), IsFullHistory));
+
+        static bool IsFullHistory(DbCommand command) => command.CommandText.Contains("WITH parts AS", StringComparison.Ordinal)
+            && !command.CommandText.Contains("RKSV-Nachlauf", StringComparison.Ordinal);
+
+        static IEnumerable<JsonElement> ReceiptScans(JsonElement node)
+        {
+            if (node.TryGetProperty("Relation Name", out var relation) && relation.GetString() == "Receipts")
+            {
+                yield return node;
+            }
+            if (node.TryGetProperty("Plans", out var children))
+            {
+                foreach (var child in children.EnumerateArray().SelectMany(ReceiptScans))
+                {
+                    yield return child;
+                }
+            }
+        }
     }
 
     private static async Task<CashRegisterDto> CreateRegisterAsync(TestSpa spa, FiscalCountry country = FiscalCountry.AT) =>

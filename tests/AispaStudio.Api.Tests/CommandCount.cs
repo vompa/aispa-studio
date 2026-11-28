@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -14,13 +15,16 @@ internal sealed class CommandCount : IObserver<DiagnosticListener>, IObserver<Ke
     private readonly List<IDisposable> _subscriptions = [];
     private int _count;
 
-    private CommandCount()
+    private readonly Func<DbCommand, bool>? _matches;
+
+    private CommandCount(Func<DbCommand, bool>? matches)
     {
+        _matches = matches;
     }
 
-    public static async Task<int> OfAsync(Func<Task> action)
+    public static async Task<int> OfAsync(Func<Task> action, Func<DbCommand, bool>? matches = null)
     {
-        using var counter = new CommandCount();
+        using var counter = new CommandCount(matches);
         counter._subscriptions.Add(DiagnosticListener.AllListeners.Subscribe(counter));
         Active.Value = counter;
         try
@@ -48,7 +52,8 @@ internal sealed class CommandCount : IObserver<DiagnosticListener>, IObserver<Ke
 
     public void OnNext(KeyValuePair<string, object?> value)
     {
-        if (value.Key == RelationalEventId.CommandExecuting.Name && Active.Value == this)
+        if (value.Key == RelationalEventId.CommandExecuting.Name && Active.Value == this &&
+            value.Value is CommandEventData command && (_matches == null || _matches(command.Command)))
         {
             Interlocked.Increment(ref _count);
         }

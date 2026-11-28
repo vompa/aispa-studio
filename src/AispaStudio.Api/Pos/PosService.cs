@@ -194,9 +194,8 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
     public async Task<CashRegisterDto> RegisterDtoAsync(CashRegister register, CancellationToken ct) =>
         await RegisterDtoAsync(register, await db.Receipts.AnyAsync(r => r.RegisterId == register.Id && r.Kind == ReceiptKind.Start, ct), ct);
 
-    private async Task<CashRegisterDto> RegisterDtoAsync(CashRegister register, bool hasStart, CancellationToken ct)
+    private async Task<FiscalReadinessDto> ReadinessAsync(CashRegister register, bool hasStart, CancellationToken ct)
     {
-        var dto = ToDto(register);
         var reasons = new List<string>();
         if (!register.IsActive)
         {
@@ -208,7 +207,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             reasons.Add("Der Startbeleg fehlt.");
         }
 
-        if (dto.OtherSite)
+        if (IsOtherSite(register))
         {
             reasons.Add(OtherSiteMessage);
         }
@@ -227,11 +226,18 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             }
         }
 
+        return new(state, reasons);
+    }
+
+    private async Task<CashRegisterDto> RegisterDtoAsync(CashRegister register, bool hasStart, CancellationToken ct)
+    {
+        var dto = ToDto(register);
+        var readiness = await ReadinessAsync(register, hasStart, ct);
         var zone = await ZoneAsync(register, ct);
         var closing = await ClosingStatusAsync(register, LocalTime.LocalDate(time.GetUtcNow(), zone), ct);
         return dto with
         {
-            Readiness = new(state, reasons),
+            Readiness = readiness,
             Confirmations = closing.Confirmations,
             YearlyReceipt = closing.Status,
             PendingYearlyReceipts = closing.Pending,
@@ -239,13 +245,27 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         };
     }
 
+    private static IQueryable<CashRegister> ReadinessRegisters(IQueryable<CashRegister> rows) => rows.Select(r => new CashRegister
+    {
+        Id = r.Id,
+        LocationId = r.LocationId,
+        Code = r.Code,
+        Country = r.Country,
+        SiteId = r.SiteId,
+        FiscalProvider = r.FiscalProvider,
+        CertificateSerial = r.CertificateSerial,
+        IsPractice = r.IsPractice,
+        IsActive = r.IsActive,
+        ReceiptHeader = ""
+    });
+
     public async Task<CashRegister?> SelectOnlineRegisterAsync(Guid locationId, CancellationToken ct)
     {
         var here = site.Get(db);
-        var candidates = await db.CashRegisters.AsNoTracking()
+        var candidates = await ReadinessRegisters(db.CashRegisters.AsNoTracking()
             .Where(r => r.LocationId == locationId && r.IsActive && (here == null || r.SiteId == null || r.SiteId == here)
                 && db.Receipts.Any(receipt => receipt.RegisterId == r.Id && receipt.Kind == ReceiptKind.Start))
-            .OrderBy(r => r.IsPractice).ThenBy(r => r.Code).ThenBy(r => r.Id).ToListAsync(ct);
+            .OrderBy(r => r.IsPractice).ThenBy(r => r.Code).ThenBy(r => r.Id)).ToListAsync(ct);
         foreach (var register in candidates)
         {
             if (await FiscalReadyAsync(register, ct))
@@ -257,7 +277,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         return null;
     }
 
-    public async Task<List<CashRegisterDto>> RegistersAsync(UserAccess access, Guid? locationId, CancellationToken ct)
+    private IQueryable<CashRegister> AccessibleRegisters(UserAccess access, Guid? locationId)
     {
         var query = db.CashRegisters.AsNoTracking().Where(r => locationId == null || r.LocationId == locationId);
         if (!access.AllLocations)
@@ -266,8 +286,28 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
             query = query.Where(r => allowed.Contains(r.LocationId));
         }
 
+        return query.OrderBy(r => r.Code);
+    }
+
+    public async Task<List<(string Code, FiscalReadinessDto Readiness)>> RegisterReadinessAsync(UserAccess access, Guid? locationId, CancellationToken ct)
+    {
+        var result = new List<(string, FiscalReadinessDto)>();
+        var rows = await ReadinessRegisters(AccessibleRegisters(access, locationId)).Select(r => new
+        {
+            Register = r,
+            HasStart = db.Receipts.Any(s => s.RegisterId == r.Id && s.Kind == ReceiptKind.Start)
+        }).ToListAsync(ct);
+        foreach (var row in rows)
+        {
+            result.Add((row.Register.Code, await ReadinessAsync(row.Register, row.HasStart, ct)));
+        }
+        return result;
+    }
+
+    public async Task<List<CashRegisterDto>> RegistersAsync(UserAccess access, Guid? locationId, CancellationToken ct)
+    {
         var result = new List<CashRegisterDto>();
-        var rows = await query.OrderBy(r => r.Code).Select(r => new
+        var rows = await AccessibleRegisters(access, locationId).Select(r => new
         {
             Register = r,
             HasStart = db.Receipts.Any(receipt => receipt.RegisterId == r.Id && receipt.Kind == ReceiptKind.Start),
@@ -2234,12 +2274,7 @@ internal sealed partial class PosService(AispaDbContext db, FiscalizationResolve
         DateOnly? previousFiscalDate = null;
         if (automatic && register.Country == FiscalCountry.AT && register.LastReceiptNumber > 0)
         {
-            var history = await FiscalYearsAsync(register, ct);
-            if (history.LastLocal is { } last)
-            {
-                previousFiscalDate = DateOnly.FromDateTime(last);
-            }
-            await CloseEarlierYearsAsync(register, history, LocalTime.LocalDate(now, zone).Year, zone, now, ct);
+            previousFiscalDate = await PrepareYearsAsync(register, now, zone, ct);
         }
         return await IssueCoreAsync(register, kind, fiscal.For(register.Country), zone, now, build, automatic,
             receipt => db.Receipts.Add(receipt), ct, previousFiscalDate);
