@@ -104,9 +104,9 @@ public sealed class SessionBoundaryTests
         Assert.False(restarted.IsSignedIn);
     }
 
-    private sealed class FailedSessionClear(ISessionStore original) : ISessionStore
+    private sealed class FailedSessionClear(ISessionStore original, Exception? failure = null) : ISessionStore
     {
-        public IOException Failure { get; } = new("Sitzungsspeicher ist gesperrt.");
+        public Exception Failure { get; } = failure ?? new IOException("Sitzungsspeicher ist gesperrt.");
         public string? Load() => original.Load();
         public void Save(string cookie) => original.Save(cookie);
         public void Clear() => throw Failure;
@@ -128,6 +128,52 @@ public sealed class SessionBoundaryTests
         Assert.Null(reopened.Get(Customer));
         Assert.Null(api.SessionCookie);
         Assert.Equal(QuickSwitchTests.Device, reopened.SharedDevice);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(401)]
+    [InlineData(403)]
+    public async Task Fehlendes_Loeschrecht_laesst_den_unabhaengigen_Lesestand_widerrufen(int status)
+    {
+        var store = new MemoryOfflineStore();
+        var (session, cache) = Seed(store);
+        var locked = new FailedSessionClear(session, new UnauthorizedAccessException());
+        var server = new StubApi();
+        var api = server.Client(cache, locked);
+        if (status == 0)
+        {
+            Assert.Same(locked.Failure, await Assert.ThrowsAsync<UnauthorizedAccessException>(() => api.SignOutAsync(Ct)));
+        }
+        else
+        {
+            server.On("GET /" + Identity, null, (HttpStatusCode)status);
+            var result = await api.GetAsync<CurrentUser>(Identity, Ct);
+            Assert.Equal((HttpStatusCode)status, result.Status);
+            Assert.Contains("lokal", result.Error, StringComparison.OrdinalIgnoreCase);
+        }
+
+        var reopened = new OfflineCache(store);
+        Assert.Null(reopened.Get(Identity));
+        Assert.Null(reopened.Get(Customer));
+        Assert.Equal(QuickSwitchTests.Device, reopened.SharedDevice);
+        Assert.Null(api.SessionCookie);
+    }
+
+    [Fact]
+    public async Task Zwei_gesperrte_Speicher_melden_beide_Fehler()
+    {
+        var store = new FailingStore();
+        var (session, cache) = Seed(store);
+        var locked = new FailedSessionClear(session, new UnauthorizedAccessException());
+        store.Fail = true;
+        var api = new StubApi().Client(cache, locked);
+
+        var error = await Assert.ThrowsAsync<IOException>(() => api.SignOutAsync(Ct));
+
+        var failures = Assert.IsType<AggregateException>(error.InnerException);
+        Assert.Collection(failures.InnerExceptions, first => Assert.Same(locked.Failure, first), second => Assert.IsType<IOException>(second));
+        Assert.Null(api.SessionCookie);
     }
 
     [Fact]

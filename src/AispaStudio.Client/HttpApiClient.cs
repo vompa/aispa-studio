@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Runtime.ExceptionServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using AispaStudio.Contracts;
@@ -331,25 +332,27 @@ public class HttpApiClient : IAispaApi
 
     private void ClearRememberedSession()
     {
+        ExceptionDispatchInfo? sessionFailure = null;
         try
         {
             _store.Clear();
         }
-        catch (IOException sessionError)
+        catch (Exception error)
         {
-            try
-            {
-                OnSessionEnded();
-            }
-            catch (IOException cacheError)
-            {
-                throw new IOException("Sitzung und lokaler Lesestand konnten nicht gelöscht werden.", new AggregateException(sessionError, cacheError));
-            }
-
-            throw;
+            sessionFailure = ExceptionDispatchInfo.Capture(error);
         }
 
-        OnSessionEnded();
+        // Beide Speicher sind unabhängig. Jeder erhält seinen Löschversuch, bevor ein Fehler zurückgeht.
+        try
+        {
+            OnSessionEnded();
+        }
+        catch (Exception cacheError) when (sessionFailure is not null)
+        {
+            throw new IOException("Sitzung und lokaler Lesestand konnten nicht gelöscht werden.", new AggregateException(sessionFailure.SourceException, cacheError));
+        }
+
+        sessionFailure?.Throw();
     }
 
     /// <summary>Die Anmeldung dieser Person endet (Abmelden, Personenwechsel); ein abgeleiteter Client löscht hier ihren lokalen Stand.</summary>
@@ -620,6 +623,7 @@ public class HttpApiClient : IAispaApi
         var (turn, finished) = ReserveCookieChange();
         await turn.ConfigureAwait(false);
         SessionTransport? candidate = null;
+        var changingIdentity = false;
         try
         {
             lock (SessionLock)
@@ -639,6 +643,7 @@ public class HttpApiClient : IAispaApi
 
                 if (result.Ok && result.Value is { } user)
                 {
+                    changingIdentity = true;
                     ReplaceTransport(candidate.Retain());
                     if (!renew)
                     {
@@ -655,7 +660,7 @@ public class HttpApiClient : IAispaApi
 
             return result;
         }
-        catch (IOException)
+        catch when (changingIdentity)
         {
             lock (SessionLock)
             {

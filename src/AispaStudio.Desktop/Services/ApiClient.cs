@@ -79,9 +79,9 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
                 {
                     RejectSession();
                 }
-                catch (IOException)
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException)
                 {
-                    return result with { Error = $"{result.Error} Der lokale Lesestand konnte nicht gelöscht werden." };
+                    return result with { Error = $"{result.Error} Die lokale Abmeldung konnte nicht vollständig gespeichert werden." };
                 }
             }
 
