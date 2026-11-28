@@ -2181,3 +2181,18 @@ Expected: Die vollständige Kennung bleibt lesbar; Übungshinweis und Betrag sin
 Expected: Der Auftrag wird fertig; die Protokolle tragen die vollständige Kassa-ID im Dateinamen.
 Closes: T-138 (ADR 0105, Anbieterrahmen und Übungskennzeichnung)
 Result: ☐
+
+### T-141 – Kassenverwaltung und Offline-Stand
+Start: Isolierten Testdatenbestand als Inhaberin öffnen; eine aktive Übungskassa verwenden. Bei mehreren PCs zunächst auf jedem PC alle Ersatzbelege derselben Kassa abgleichen, auch abgelehnte Einträge klären.
+1. „Verwaltung → Kassen“ öffnen, mit der Tastatur eine Kassa auswählen.
+Expected: Land, Übungsstatus und Zustand sind lesbar; eine fremde Kassa lässt sich nicht außer Betrieb nehmen.
+2. Einen lokalen Ersatzbeleg dieser Kassa vormerken und die Außerbetriebnahme versuchen.
+Expected: Kein Abschluss wird gesendet; der Hinweis führt zum Abgleich. Ein ungelöster abgelehnter Ersatzbeleg sperrt den Vorgang ebenfalls.
+3. Den Ersatzbeleg nacherfassen und die Kassa mit der Rückfrage außer Betrieb nehmen.
+Expected: Die Kassa ist inaktiv. Nach Wegfall der letzten Kassa ist keine alte Rechnung mehr zum Kassieren offen. Bei weiteren aktiven Kassen bleibt der passende Rechnungswechsel möglich.
+4. Die App schließen, Verbindung im isolierten Test trennen und die App neu starten.
+Expected: Die außer Betrieb genommene Kassa steht auch im gespeicherten Stand inaktiv; sie kann nicht für einen neuen Ersatzbeleg gewählt werden.
+5. Einen Übungsbeleg und seine Zweitschrift ansehen.
+Expected: Beide zeigen „ÜBUNGSKASSA – kein gültiger Beleg“, die Maske das feste Übungsband und „Test-Signatur“.
+Closes: T-141 (ADR 0105, native Verwaltung und Kennzeichnung)
+Result: ☐
