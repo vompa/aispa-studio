@@ -24,6 +24,64 @@ public sealed class SyncTests(ApiFixture fixture)
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
+    public async Task Fiskalanbieter_Abgleich_uebertraegt_lange_Kennungen_zwischen_aktualisierten_Stellen()
+    {
+        var localDb = await fixture.CreateDatabaseAsync(Ct);
+        var centralDb = await fixture.CreateDatabaseAsync(Ct);
+        await using var local = fixture.Factory.WithWebHostBuilder(b =>
+        {
+            b.UseSetting("ConnectionStrings:aispadb", localDb);
+            b.UseSetting("Hosting:Standalone", "true");
+        });
+        await using var central = fixture.Factory.WithWebHostBuilder(b =>
+        {
+            b.UseSetting("ConnectionStrings:aispadb", centralDb);
+            b.UseSetting("Hosting:Standalone", "true");
+        });
+        _ = central.Server;
+
+        using var anonymous = local.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        var setup = await anonymous.PostAsJsonAsync("/api/auth/standalone/setup",
+            new StandaloneSetup("Abgleich-Spa", "DE", "Berlin", "Prüfkonto", "sync-owner", "seeblick-2026"), TestSpa.Json, Ct);
+        setup.EnsureSuccessStatusCode();
+        using var localTeam = local.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        localTeam.DefaultRequestHeaders.Add("Cookie", string.Join("; ", setup.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0])));
+        var locations = await localTeam.GetFromJsonAsync<LocationDto[]>("/api/locations", TestSpa.Json, Ct);
+        var locationId = Assert.Single(locations!).Id;
+        var localCode = new string('L', 50);
+        var localRegister = await localTeam.PostAsJsonAsync("/api/pos/registers",
+            new CashRegisterInput(locationId, localCode, FiscalCountry.DE, "Abgleich-Test", null, null, null, "test", true), TestSpa.Json, Ct);
+        localRegister.EnsureSuccessStatusCode();
+        Assert.True((await localRegister.Content.ReadFromJsonAsync<CashRegisterDto>(TestSpa.Json, Ct))!.IsPractice);
+
+        // Eine noch auf 30 Zeichen begrenzte TSE-Spalte würde schon diesen regulären Übertragungsweg mit 22001 abbrechen.
+        var runner = new SyncRunner(localDb, centralDb, "fiscal-sync-local");
+        var pushed = await runner.RunOnceAsync(Ct);
+        Assert.True(pushed.Pushed > 0);
+        Assert.Equal(0, pushed.Conflicts);
+        Assert.Equal(1L, await ScalarAsync<long>(centralDb, $"""SELECT count(*) FROM aispa."TestTseClientState" WHERE "ClientId" = '{localCode}'"""));
+        Assert.Equal(1L, await ScalarAsync<long>(centralDb, $"""SELECT count(*) FROM aispa."TestTseLog" WHERE "ClientId" = '{localCode}'"""));
+
+        using var centralLogin = central.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        var login = await centralLogin.PostAsJsonAsync("/api/auth/standalone/login", new PasswordLogin("sync-owner", "seeblick-2026"), TestSpa.Json, Ct);
+        login.EnsureSuccessStatusCode();
+        using var centralTeam = central.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+        centralTeam.DefaultRequestHeaders.Add("Cookie", string.Join("; ", login.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0])));
+        var centralCode = new string('C', 50);
+        var centralRegister = await centralTeam.PostAsJsonAsync("/api/pos/registers",
+            new CashRegisterInput(locationId, centralCode, FiscalCountry.DE, "Abgleich-Test", null, null, null, "test", true), TestSpa.Json, Ct);
+        centralRegister.EnsureSuccessStatusCode();
+
+        var pulled = await runner.RunOnceAsync(Ct);
+        Assert.True(pulled.Pulled > 0);
+        Assert.Equal(0, pulled.Conflicts);
+        Assert.Equal(1L, await ScalarAsync<long>(localDb, $"""SELECT count(*) FROM aispa."TestTseClientState" WHERE "ClientId" = '{centralCode}'"""));
+        Assert.Equal(1L, await ScalarAsync<long>(localDb, $"""SELECT count(*) FROM aispa."TestTseLog" WHERE "ClientId" = '{centralCode}'"""));
+        Assert.Equal(new SyncResult(0, 0, 0), await runner.RunOnceAsync(Ct));
+        Assert.Null(await ScalarAsync<string?>(localDb, "SELECT last_error FROM sync.peers"));
+    }
+
+    [Fact]
     public async Task Einzelplatz_sendet_holt_loescht_und_schickt_nichts_zurueck()
     {
         var localDb = await fixture.CreateDatabaseAsync(Ct);
