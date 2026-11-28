@@ -845,6 +845,33 @@ public sealed class PosTests(ApiFixture fixture)
     }
 
     [Fact]
+    public async Task Jahresbelegstatus_beginnt_mit_der_Faelligkeit_der_Kassa()
+    {
+        var spa = await TestSpa.CreateAsync(fixture, Ct);
+        await using var scope = fixture.Factory.Services.CreateAsyncScope();
+        scope.ServiceProvider.GetRequiredService<TenantContext>().Use(spa.TenantId);
+        var clock = new MovableTime(new(2026, 11, 28, 10, 0, 0, TimeSpan.Zero));
+        var pos = ActivatorUtilities.CreateInstance<PosService>(scope.ServiceProvider, clock);
+        var created = (await pos.CreateRegisterAsync(RegisterInput(spa, FiscalCountry.AT), Ct)).Value!;
+        Assert.Null(created.YearlyReceipt);
+        Assert.Empty(created.PendingYearlyReceipts!);
+
+        var db = scope.ServiceProvider.GetRequiredService<AispaDbContext>();
+        var register = await db.CashRegisters.SingleAsync(r => r.Id == created.Id, Ct);
+        clock.Now = new(2026, 12, 14, 10, 0, 0, TimeSpan.Zero);
+        Assert.Null((await pos.RegisterDtoAsync(register, Ct)).YearlyReceipt);
+        clock.Now = clock.Now.AddDays(1);
+        Assert.Equal(new YearlyReceiptStatusDto(2026, null, false, true), (await pos.RegisterDtoAsync(register, Ct)).YearlyReceipt);
+
+        clock.Now = new(2027, 1, 1, 10, 0, 0, TimeSpan.Zero);
+        Assert.Equal(new YearlyReceiptStatusDto(2026, null, false, false), (await pos.RegisterDtoAsync(register, Ct)).YearlyReceipt);
+        clock.Now = new(2027, 12, 15, 10, 0, 0, TimeSpan.Zero);
+        Assert.Equal(new YearlyReceiptStatusDto(2027, null, false, true), (await pos.RegisterDtoAsync(register, Ct)).YearlyReceipt);
+        register.IsActive = false;
+        Assert.Null((await pos.RegisterDtoAsync(register, Ct)).YearlyReceipt);
+    }
+
+    [Fact]
     public async Task Monats_und_Jahresbeleg_entstehen_beim_ersten_Beleg_im_neuen_Zeitraum()
     {
         var spa = await TestSpa.CreateAsync(fixture, Ct);
@@ -941,8 +968,12 @@ public sealed class PosTests(ApiFixture fixture)
         await db.Locations.Where(l => l.Id == spa.Location.Id).ExecuteUpdateAsync(s => s.SetProperty(l => l.TimeZone, "America/Los_Angeles"), Ct);
         var legacyStatus = await pos.RegisterDtoAsync(await db.CashRegisters.SingleAsync(r => r.Id == legacy.Id, Ct), Ct);
         Assert.Contains(legacyStatus.PendingYearlyReceipts!, r => r.Year == 2033 && r.ReceiptId == original.Id);
+        Assert.Null(legacyStatus.YearlyReceipt);
         Assert.DoesNotContain(legacyStatus.Warnings, w => w.Contains("2034 fehlt", StringComparison.Ordinal));
         Assert.Null((await pos.ConfirmAsync(legacy.Id, RegisterConfirmationKind.YearlyReceiptCheck, 2033, original.Id, "owner", false, Ct)).Error);
+        var checkedStatus = await pos.RegisterDtoAsync(await db.CashRegisters.SingleAsync(r => r.Id == legacy.Id, Ct), Ct);
+        Assert.Contains(checkedStatus.Confirmations!, c => c.Year == 2033 && c.ReceiptId == original.Id);
+        Assert.Null(checkedStatus.YearlyReceipt);
         var preserved = await db.Receipts.AsNoTracking().SingleAsync(r => r.Id == original.Id, Ct);
         Assert.Equal((original.FiscalCode, original.FiscalSignature), (preserved.FiscalCode, preserved.FiscalSignature));
         Assert.Null(preserved.ClosingYear);

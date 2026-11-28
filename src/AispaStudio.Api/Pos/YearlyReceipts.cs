@@ -113,6 +113,10 @@ internal sealed partial class PosService
                     ? " Der aktuelle Umsatzzähler weicht vom Jahresendstand ab. Den offenen Abschluss fachlich klären." : "";
                 warnings.Add($"Kassa {register.Code}: Der gültige Jahresbeleg {year} fehlt.{reason}");
             }
+            else
+            {
+                continue;
+            }
 
             if (year == currentYear)
             {

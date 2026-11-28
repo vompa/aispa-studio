@@ -8992,3 +8992,7 @@ Zusätzlich bestand der reguläre Zwei-Datenbank-Test `Fiskalanbieter_Abgleich_u
 - **Nicht geprüft:** Physischer Bon, echte FinanzOnline- oder ELSTER-Meldung, dunkles Schema, ganzer Bildlauf und produktive Migration. Die abschließenden Handtests stehen offen.
 - **Beim Schreiben festgestellt:** Die Hilfeprüfung hing von der Reihenfolge der Ansichtsattribute ab und wurde korrigiert. Der kalte Review fand einen unbehandelten Fehler der Windows-Zwischenablage und eine falsche Seriennummer im Handbuchbild. Die App meldet den Kopierfehler jetzt kontrolliert. Das Bild wurde mit korrekten Testdaten neu erzeugt. Vier frühere Anläufe der lokalen Ende-zu-Ende-Probe brachen im Prüfskript ab. Nach Korrektur folgten eine Gegenprobe und der erfolgreiche Einzelplatzlauf.
 - **Text-Prüfsatz:** Eine Übungskassa bleibt eine Übungskassa. Für den Echtbetrieb braucht es eine eigene Kassen-ID.
+
+## Jahresbelegstatus nach der Handprüfung einer neuen Kassa (28.11.2026)
+
+Eine im November neu eingerichtete österreichische Kassa zeigte im Assistenten und in der Verwaltung einen fehlenden Jahresbeleg für das Jahr vor ihrer Einrichtung. Die API liefert einen Prüfstatus jetzt nur für einen gültigen Beleg oder einen fälligen Abschluss. Für das laufende Jahr beginnt die Anzeige am 15. Dezember. Bereits ausgestellte Jahresbelege bleiben auch nach einer Betriebspause zur Prüfung oder mit ihrer Bestätigung sichtbar.
