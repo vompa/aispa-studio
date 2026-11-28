@@ -73,7 +73,7 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
         object? queuedBody = null, CancellationToken ct = default)
     {
         var result = await PostAsync<AppointmentDto>(path, body, ct).ConfigureAwait(false);
-        if (result.Status != 0 || Offline is null)
+        if (result.Status != 0 || Offline is null || !OfflineCache.CanQueue(path))
         {
             return result;
         }

@@ -3,6 +3,7 @@
              xmlns:vm="using:AispaStudio.Desktop.ViewModels"
              xmlns:c="using:AispaStudio.Contracts"
              xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:views="using:AispaStudio.Desktop.Views"
              x:Class="AispaStudio.Desktop.Views.RegisterWizardView"
              x:DataType="vm:RegisterWizardViewModel"
              Background="{DynamicResource BgBrush}"
@@ -61,6 +62,11 @@
                   </ComboBox>
                 </ui:FormField>
                 <CheckBox Content="Übungsbetrieb wählen" IsChecked="{Binding PracticeMode}" IsVisible="{Binding ShowPracticeChoice}" />
+                <StackPanel Spacing="8" IsVisible="{Binding HasCredentialFields}">
+                  <TextBlock Text="Zugangsdaten" FontWeight="SemiBold" />
+                  <TextBlock Text="Alle erforderlichen Angaben des Anbieters eingeben." TextWrapping="Wrap" />
+                  <ItemsControl ItemsSource="{Binding CredentialFields}" />
+                </StackPanel>
                 <StackPanel Spacing="8" IsVisible="{Binding IsPractice}">
                   <ui:InfoBar Severity="Warning" Title="Übungskassa"
                               Message="Die Kassa erstellt nur Übungsbelege. Für den Echtbetrieb braucht es eine eigene Kassa mit neuer Kassen-ID." />
@@ -101,6 +107,9 @@
               <TextBlock Text="{Binding FinishText}" TextWrapping="Wrap" />
             </StackPanel>
           </Border>
+          <Panel IsVisible="{Binding ShowFinish}">
+            <views:RegisterFiscalView DataContext="{Binding Fiscal}" />
+          </Panel>
         </StackPanel>
       </Grid>
     </ScrollViewer>

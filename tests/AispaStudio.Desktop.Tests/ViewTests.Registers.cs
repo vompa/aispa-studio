@@ -86,7 +86,17 @@ public sealed partial class ViewTests
             var band = Named<InfoBar>(window, "PracticeRegisterBand");
             Assert.True(band.IsEffectivelyVisible);
             Assert.Null(band.CloseCommand);
-            pos.FillRestCommand.Execute(pos.Payments.First(payment => payment.Method == PaymentMethod.Card));
+            var bill = pos.Bill;
+            var card = pos.Payments.First(payment => payment.Method == PaymentMethod.Card);
+            pos.FillRestCommand.Execute(card);
+            var amount = card.Amount;
+            var updated = PracticeRegister with { Warnings = ["Ein neuer Jahresbeleg fehlt."] };
+            await pos.ApplyRegisterChangeAsync(updated);
+            await Pump(Settling);
+            Assert.Same(updated, pos.Register);
+            Assert.Same(bill, pos.Bill);
+            Assert.Same(card, pos.Payments.First(payment => payment.Method == PaymentMethod.Card));
+            Assert.Equal(amount, card.Amount);
             await pos.PayCommand.ExecuteAsync(null);
             await Pump(Settling);
             Assert.True(pos.Receipt!.IsPractice);

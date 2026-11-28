@@ -43,16 +43,17 @@ public sealed class RegisterRow(CashRegisterDto register, string location) : Obs
 
     public IReadOnlyList<string> Reasons => Register.Readiness?.Reasons ?? [];
 
-    internal void MarkDecommissioned(CashRegisterDto value)
+    internal void UpdateRegister(CashRegisterDto value)
     {
         _register = value;
+        OnPropertyChanged(nameof(Register));
         OnPropertyChanged(nameof(Status));
         OnPropertyChanged(nameof(Name));
         OnPropertyChanged(nameof(Reasons));
     }
 }
 
-public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState toast) : ViewModelBase, INativeArea
+public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState toast, TimeProvider? time = null) : ViewModelBase, INativeArea
 {
     private Guid? _requestedRegisterId;
     private Task? _loading;
@@ -70,7 +71,42 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
     public partial RegisterRow? SelectedRow { get; set; }
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(ShowEmpty))]
+    public partial RegisterFiscalViewModel? Fiscal { get; private set; }
+
+    partial void OnSelectedRowChanged(RegisterRow? value)
+    {
+        Fiscal?.Stop();
+        Fiscal = null;
+        if (value is null || value.Register.OtherSite)
+        {
+            return;
+        }
+
+        var fiscal = new RegisterFiscalViewModel(api, value.Register, toast, (time ?? TimeProvider.System).LocalTimeZone, showProvider: true)
+        {
+            Dialogs = Dialogs,
+        };
+        fiscal.RegisterChanged += ApplyFiscalChange;
+        Fiscal = fiscal;
+        _ = fiscal.LoadProviderAsync();
+    }
+
+    internal void ApplyFiscalChange(CashRegisterDto register)
+    {
+        var row = Rows.FirstOrDefault(item => item.Register.Id == register.Id);
+        if (row is { Register.IsActive: false } && register.IsActive)
+        {
+            return;
+        }
+
+        _registerVersion++;
+        row?.UpdateRegister(register);
+        Fiscal?.ApplySnapshot(register);
+        RegisterChanged?.Invoke(register);
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowEmpty), nameof(LoadStatusTitle))]
     public partial bool IsLoaded { get; private set; }
 
     [ObservableProperty]
@@ -78,12 +114,15 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
     public partial bool IsLoading { get; private set; }
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowEmpty))]
     public partial string? LoadError { get; private set; }
+
+    public string LoadStatusTitle => IsLoaded ? "Kassenstand möglicherweise veraltet" : "Die Kassen konnten nicht geladen werden.";
 
     [ObservableProperty]
     public partial string? Error { get; private set; }
 
-    public bool ShowEmpty => IsLoaded && Rows.Count == 0;
+    public bool ShowEmpty => IsLoaded && Rows.Count == 0 && LoadError is null;
 
     public bool HasSelection => SelectedRow is not null;
 
@@ -112,7 +151,7 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
         }
     }
 
-    public Task EnsureLoadedAsync() => IsLoaded ? Task.CompletedTask : LoadAsync();
+    public Task EnsureLoadedAsync() => LoadAsync();
 
     internal async Task RefreshAfterCreationAsync(CashRegisterDto register, string? location)
     {
@@ -135,7 +174,6 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
     private async Task LoadLatestAsync()
     {
         IsLoading = true;
-        LoadError = null;
         try
         {
             while (true)
@@ -153,7 +191,14 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
 
                 if (registers.Value is null || locations.Value is null)
                 {
-                    LoadError = registers.Error ?? locations.Error;
+                    LoadError = registers.Error ?? locations.Error ?? "Der aktuelle Kassenstand wurde nicht geladen.";
+                    return;
+                }
+
+                var cached = registers.CachedAt is not null || locations.CachedAt is not null;
+                LoadError = cached ? "Die Verbindung fehlt. Angezeigt wird der letzte verfügbare Stand." : null;
+                if (cached && IsLoaded)
+                {
                     return;
                 }
 
@@ -217,7 +262,8 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
 
         var updated = register with { IsActive = false, Readiness = null };
         _registerVersion++;
-        Rows.FirstOrDefault(item => item.Register.Id == register.Id)?.MarkDecommissioned(updated);
+        Rows.FirstOrDefault(item => item.Register.Id == register.Id)?.UpdateRegister(updated);
+        Fiscal?.ApplySnapshot(updated);
         DecommissionCommand.NotifyCanExecuteChanged();
         RegisterChanged?.Invoke(updated);
 

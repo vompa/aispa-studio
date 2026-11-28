@@ -1,0 +1,113 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:AispaStudio.Desktop.ViewModels"
+             xmlns:ui="using:AispaStudio.Desktop.Controls"
+             xmlns:views="using:AispaStudio.Desktop.Views"
+             x:Class="AispaStudio.Desktop.Views.RegisterFiscalView"
+             x:DataType="vm:RegisterFiscalViewModel">
+  <StackPanel Spacing="12">
+    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsBusy}" AutomationProperties.Name="Kassenstatus wird geprüft" />
+    <ui:InfoBar Severity="Error" Message="{Binding Error}" IsVisible="{Binding Error, Converter={x:Static ObjectConverters.IsNotNull}}" />
+    <Border Classes="card" Padding="16" IsEnabled="{Binding !IsBusy}" IsVisible="{Binding ShowProvider}">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Signatureinrichtung" Classes="h2" TextWrapping="Wrap" />
+          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" />
+        </Grid>
+        <TextBlock Text="{Binding ProviderName}" TextWrapping="Wrap" />
+        <StackPanel Spacing="8" IsVisible="{Binding ShowProviderActions}">
+          <StackPanel Spacing="8" IsVisible="{Binding HasFields}">
+            <TextBlock Text="Für neue Zugangsdaten alle Felder ausfüllen." TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{Binding Fields}" />
+            <WrapPanel ItemSpacing="8" LineSpacing="8">
+              <Button x:Name="SaveFiscalCredentialsButton" Content="Zugangsdaten speichern" Command="{Binding SaveCredentialsCommand}" />
+              <Button Content="Zugangsdaten löschen" Classes="danger" Command="{Binding DeleteCredentialsCommand}" />
+            </WrapPanel>
+          </StackPanel>
+          <Button x:Name="FiscalCheckButton" Content="Verbindung prüfen" Command="{Binding CheckConnectionCommand}" HorizontalAlignment="Left" />
+          <TextBlock Text="{Binding Check?.Message}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite"
+                     IsVisible="{Binding Check, Converter={x:Static ObjectConverters.IsNotNull}}" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="card" Padding="16" IsEnabled="{Binding !IsBusy}" IsVisible="{Binding ShowAustria}">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Für FinanzOnline" Classes="h2" />
+          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" />
+        </Grid>
+        <ui:InfoBar Severity="Warning" Title="Übungskassa" Message="Diese Kassa nicht in FinanzOnline registrieren." IsVisible="{Binding IsPractice}" />
+        <Button x:Name="LoadFiscalRegistrationButton" Content="Registrierungsdaten anzeigen" Command="{Binding LoadRegistrationCommand}"
+                HorizontalAlignment="Left" IsVisible="{Binding !HasRegistration}" />
+        <ItemsControl ItemsSource="{Binding Registration}" IsVisible="{Binding HasRegistration}" Margin="0,0,48,0">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate><StackPanel Spacing="8" /></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:RegistrationField">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{Binding Label}" Classes="muted small" />
+                  <SelectableTextBlock Text="{Binding Value}" TextWrapping="Wrap" />
+                </StackPanel>
+                <Button x:Name="CopyFiscalValue" Grid.Column="1" Content="Kopieren" Tag="{Binding Value}" Click="CopyValue"
+                        AutomationProperties.Name="{Binding CopyName}" VerticalAlignment="Center" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <Border Classes="card" Padding="16" IsVisible="{Binding ShowGermany}">
+      <StackPanel Spacing="8">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Meldung über ELSTER" Classes="h2" TextWrapping="Wrap" />
+          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" />
+        </Grid>
+        <TextBlock Text="Die Übungskassa nicht über ELSTER melden." TextWrapping="Wrap" IsVisible="{Binding IsPractice}" />
+        <TextBlock Text="Die Kassa über ELSTER melden und die Meldung bestätigen." TextWrapping="Wrap" IsVisible="{Binding !IsPractice}" />
+      </StackPanel>
+    </Border>
+
+    <Border Classes="card" Padding="16" IsEnabled="{Binding !IsBusy}" IsVisible="{Binding ShowConfirmationRows}">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="Bestätigungen" Classes="h2" />
+          <ui:HelpButton Grid.Column="1" Topic="kassa-einrichten" />
+        </Grid>
+        <ItemsControl ItemsSource="{Binding Confirmations}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate><StackPanel Spacing="12" /></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:FiscalConfirmationItem">
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding Label}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                <TextBlock Text="{Binding Status}" Classes="muted" TextWrapping="Wrap" />
+                <WrapPanel ItemSpacing="8" LineSpacing="8">
+                  <Button Content="Beleg anzeigen" IsVisible="{Binding HasReceipt}" CommandParameter="{Binding}"
+                          Command="{Binding $parent[views:RegisterFiscalView].((vm:RegisterFiscalViewModel)DataContext).OpenYearlyCommand}" />
+                  <Button Content="{Binding ToggleText}" AutomationProperties.Name="{Binding ToggleName}" IsVisible="{Binding CanToggle}"
+                          Command="{Binding $parent[views:RegisterFiscalView].((vm:RegisterFiscalViewModel)DataContext).ToggleConfirmationCommand}"
+                          CommandParameter="{Binding}" />
+                </WrapPanel>
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button x:Name="CreateYearlyReceiptButton" Content="Jahresbeleg erstellen" Command="{Binding CreateYearlyCommand}"
+                HorizontalAlignment="Left" IsVisible="{Binding ShowAustria}"
+                ui:DisabledHint.Text="Verfügbar, sobald für das aktuelle Jahr ein Abschlussbeleg erstellt werden kann." />
+        <Panel IsVisible="{Binding ShowYearlyReceipt}">
+          <StackPanel Spacing="8" DataContext="{Binding YearlyReceipt}" x:DataType="vm:ReceiptViewModel">
+            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+            <views:ReceiptPaper />
+            <ui:DocumentActions DataContext="{Binding Document}" />
+          </StackPanel>
+        </Panel>
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

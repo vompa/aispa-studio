@@ -52,15 +52,17 @@ public sealed class PosClosingDocumentTests
         return pos;
     }
 
-    [Fact]
-    public void Der_Knopfblock_zeigt_auf_das_PDF_des_gespeicherten_Abschlusses_ohne_Versand()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Der_Knopfblock_zeigt_auf_das_PDF_des_gespeicherten_Abschlusses_ohne_Versand(bool practice)
     {
-        var source = PosViewModel.ClosingDocumentSource(Closed, mayReadAmounts: true);
+        var source = PosViewModel.ClosingDocumentSource(Closed with { IsPractice = practice }, mayReadAmounts: true);
 
         Assert.Equal($"api/pos/registers/{SpaSample.Register.Id}/day-closings/{Closed.Id}/pdf", source.PdfPath);
         Assert.Null(source.SendPath);
         Assert.Null(source.AlternativePdfPath);
-        Assert.Equal("Tagesabschluss", source.Title);
+        Assert.Equal(practice ? "Tagesabschluss · Übungskassa" : "Tagesabschluss", source.Title);
         Assert.True(source.IsAllowed);
     }
 

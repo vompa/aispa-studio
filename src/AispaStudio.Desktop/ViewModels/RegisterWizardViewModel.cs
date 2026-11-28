@@ -6,7 +6,8 @@ using CommunityToolkit.Mvvm.Input;
 
 namespace AispaStudio.Desktop.ViewModels;
 
-public sealed partial class RegisterWizardViewModel(IWorkstationApi api, CurrentAccess access, Guid? preferredLocation) : ViewModelBase
+public sealed partial class RegisterWizardViewModel(IWorkstationApi api, CurrentAccess access, Guid? preferredLocation,
+    ToastState? toast = null, TimeProvider? time = null) : ViewModelBase
 {
     private const int PlaceStep = 1;
     private const int ProviderStep = 2;
@@ -16,6 +17,7 @@ public sealed partial class RegisterWizardViewModel(IWorkstationApi api, Current
 
     public event Action? CloseRequested;
     public event Func<CashRegisterDto, Task>? RegisterCreated;
+    public event Action<CashRegisterDto>? RegisterUpdated;
 
     public static IReadOnlyList<CountryOption> Countries => CompanyViewModel.Countries;
 
@@ -47,6 +49,12 @@ public sealed partial class RegisterWizardViewModel(IWorkstationApi api, Current
     [NotifyPropertyChangedFor(nameof(ShowPracticeChoice), nameof(IsPractice))]
     [NotifyCanExecuteChangedFor(nameof(NextCommand), nameof(CreateCommand))]
     public partial FiscalProviderDto? Provider { get; set; }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasCredentialFields))]
+    public partial IReadOnlyList<FiscalCredentialEntry> CredentialFields { get; private set; } = [];
+
+    public bool HasCredentialFields => CredentialFields.Count != 0;
 
     public bool ShowPracticeChoice => Provider is { IsTest: false };
 
@@ -110,12 +118,15 @@ public sealed partial class RegisterWizardViewModel(IWorkstationApi api, Current
     [NotifyCanExecuteChangedFor(nameof(CreateCommand))]
     public partial CashRegisterDto? Created { get; private set; }
 
+    [ObservableProperty]
+    public partial RegisterFiscalViewModel? Fiscal { get; private set; }
+
     public bool ShowPracticeFinish => Created?.IsPractice == true;
 
     public string FinishText => (Created?.Country, ShowPracticeFinish) switch
     {
         (FiscalCountry.AT, true) => "Diese Übungskassa nicht in FinanzOnline registrieren. Für den Echtbetrieb eine eigene Kassa einrichten.",
-        (FiscalCountry.AT, false) => "Die Kassa in FinanzOnline registrieren und den Startbeleg prüfen. Die Angaben stehen in der Kassenverwaltung.",
+        (FiscalCountry.AT, false) => "Die Kassa in FinanzOnline registrieren und den Startbeleg prüfen.",
         (FiscalCountry.DE, true) => "Diese Übungskassa nicht über ELSTER melden. Für den Echtbetrieb eine eigene Kassa einrichten.",
         (FiscalCountry.DE, false) => "Die Kassa über ELSTER melden. Die Anleitung steht in der Hilfe zur Kasseneinrichtung.",
         (_, true) => "Für den Echtbetrieb eine eigene Kassa einrichten.",
@@ -131,6 +142,9 @@ public sealed partial class RegisterWizardViewModel(IWorkstationApi api, Current
 
     partial void OnProviderChanged(FiscalProviderDto? value)
     {
+        ClearCredentials();
+        CredentialFields = [.. (value?.Fields ?? []).Select(field => new FiscalCredentialEntry(field, NotifyCredentialChanged))];
+        NotifyCredentialChanged();
         PracticeMode = false;
         PracticeConfirmed = false;
     }
@@ -183,7 +197,8 @@ public sealed partial class RegisterWizardViewModel(IWorkstationApi api, Current
         _ => false,
     });
 
-    private bool ValidProvider => Provider is not null && (!IsPractice || PracticeConfirmed);
+    private bool ValidProvider => Provider is not null && (!IsPractice || PracticeConfirmed)
+        && CredentialFields.All(entry => !string.IsNullOrWhiteSpace(entry.Value));
 
     private bool ValidDetails => RegisterCode().IsMatch(Code.Trim()) && !string.IsNullOrWhiteSpace(ReceiptHeader);
 
@@ -249,7 +264,8 @@ public sealed partial class RegisterWizardViewModel(IWorkstationApi api, Current
         try
         {
             var country = Enum.Parse<FiscalCountry>(Country.Code);
-            var input = new CashRegisterInput(location.Id, Code.Trim(), country, ReceiptHeader.Trim(), null, null, null, provider.Id, IsPractice);
+            var input = new CashRegisterInput(location.Id, Code.Trim(), country, ReceiptHeader.Trim(), null, null, null, provider.Id, IsPractice,
+                FiscalCredentialEntry.Values(CredentialFields));
             var result = await api.PostAsync<CashRegisterDto>("api/pos/registers", input).ConfigureAwait(true);
             if (result.Value is not { } created)
             {
@@ -258,6 +274,13 @@ public sealed partial class RegisterWizardViewModel(IWorkstationApi api, Current
             }
 
             Created = created;
+            ClearCredentials();
+            var clock = time ?? TimeProvider.System;
+            Fiscal = new RegisterFiscalViewModel(api, created, toast ?? new ToastState(clock), clock.LocalTimeZone, showProvider: false)
+            {
+                Dialogs = Dialogs,
+            };
+            Fiscal.RegisterChanged += refreshed => RegisterUpdated?.Invoke(refreshed);
             Step = FinishStep;
             if (RegisterCreated is { } afterCreate)
             {
@@ -277,7 +300,23 @@ public sealed partial class RegisterWizardViewModel(IWorkstationApi api, Current
     {
         if (CanClose())
         {
+            ClearCredentials();
+            Fiscal?.Stop();
             CloseRequested?.Invoke();
+        }
+    }
+
+    private void NotifyCredentialChanged()
+    {
+        NextCommand.NotifyCanExecuteChanged();
+        CreateCommand.NotifyCanExecuteChanged();
+    }
+
+    private void ClearCredentials()
+    {
+        foreach (var field in CredentialFields)
+        {
+            field.Value = "";
         }
     }
 

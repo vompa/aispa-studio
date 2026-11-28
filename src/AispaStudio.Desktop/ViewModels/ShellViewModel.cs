@@ -1217,10 +1217,12 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        var wizard = new RegisterWizardViewModel(_api, access, Calendar.Location?.Id);
+        registers.Fiscal?.HideSecrets();
+        var wizard = new RegisterWizardViewModel(_api, access, Calendar.Location?.Id, Confirmation, _time) { Dialogs = Pos.Dialogs };
         wizard.CloseRequested += () => RegisterWizard = null;
         wizard.RegisterCreated += register => Task.WhenAll(registers.RefreshAfterCreationAsync(register, wizard.Location?.Name),
             Pos.ApplyRegisterChangeAsync(register), AdminPage.Company?.LoadRegisterSetupAsync() ?? Task.CompletedTask);
+        wizard.RegisterUpdated += registers.ApplyFiscalChange;
         RegisterWizard = wizard;
         await wizard.LoadAsync().ConfigureAwait(true);
     }

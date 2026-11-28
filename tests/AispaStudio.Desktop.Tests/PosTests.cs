@@ -45,6 +45,18 @@ public sealed class PosTests
         Assert.NotEmpty(pos.Lines);
         Assert.Contains(pos.OpenBills, bill => bill.Id == parked.Id);
 
+        var payment = pos.Payments.First();
+        payment.Amount = "10";
+        const string YearlyWarning = "Der gültige Jahresbeleg fehlt.";
+        await pos.ApplyRegisterChangeAsync(last with { Warnings = [YearlyWarning] });
+        Assert.Equal(lastBill.Id, pos.Bill!.Id);
+        Assert.Same(payment, pos.Payments.First());
+        Assert.Equal("10", payment.Amount);
+        Assert.Contains(YearlyWarning, pos.Registers.Single(item => item.Id == last.Id).Warnings);
+        pos.Register = pos.Registers.Single(item => item.Id == first.Id);
+        await pos.OpenBillByIdAsync(lastBill.Id);
+        Assert.Equal(YearlyWarning, pos.Warning);
+
         await pos.ApplyRegisterChangeAsync(first with { IsActive = false });
         Assert.Equal(lastBill.Id, pos.Bill!.Id);
         await pos.OpenBillByIdAsync(firstBill.Id);

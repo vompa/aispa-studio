@@ -93,6 +93,11 @@
     <DataTemplate DataType="vm:RegisterWizardViewModel">
       <views:RegisterWizardView />
     </DataTemplate>
+    <DataTemplate DataType="vm:FiscalCredentialEntry" x:DataType="vm:FiscalCredentialEntry">
+      <ui:FormField Label="{Binding Label}" IsRequired="True" Help="{Binding Status}" Margin="0,0,0,8">
+        <TextBox Text="{Binding Value}" PasswordChar="{Binding PasswordChar}" />
+      </ui:FormField>
+    </DataTemplate>
     <DataTemplate DataType="vm:CompanyViewModel">
       <views:CompanyView />
     </DataTemplate>

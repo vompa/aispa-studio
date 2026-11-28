@@ -276,7 +276,7 @@ public sealed partial class AdminPageViewModel : ViewModelBase
         "reminders" => new RemindersViewModel(api, time.LocalTimeZone, remindersOn: modules?.Reminders != false, rebookingOn: modules?.Rebooking != false, toast: toast),
         "payments" => new PaymentsViewModel(api, toast),
         "kassa" => new PosSettingsViewModel(api, toast),
-        "registers" => new RegistersViewModel(api, toast),
+        "registers" => new RegistersViewModel(api, toast, time),
         "team" => new TeamViewModel(api, user, time, toast),
         "handbook" => new HandbookViewModel(api, toast),
         "intake" => new IntakeViewModel(api, time.LocalTimeZone, toast: toast),

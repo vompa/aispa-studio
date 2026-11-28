@@ -8,6 +8,50 @@ namespace AispaStudio.Desktop.Tests;
 /// <summary>Rezeption ohne Internet (ADR 0005): letzter Stand lesen, Änderungen vormerken, danach abgleichen.</summary>
 public sealed class OfflineTests
 {
+    [Fact]
+    public async Task Fiscal_secrets_never_enter_or_escape_the_offline_cache_or_queue()
+    {
+        var register = SpaSample.Register;
+        var registration = $"api/pos/registers/{register.Id}/fiscal-registration";
+        var credentials = $"api/pos/registers/{register.Id}/fiscal-credentials";
+        var normal = $"api/pos/registers/{register.Id}/receipts?date=2026-10-19";
+        var calendar = $"api/locations/{SpaSample.LocationId}/calendar?date=2026-10-19";
+        var store = new MemoryOfflineStore();
+        var old = OfflineState.Empty();
+        var now = DateTimeOffset.UtcNow;
+        old.Responses[registration] = new CachedResponse("{}", now);
+        old.Responses[credentials] = new CachedResponse("{}", now);
+        old.Responses[normal] = new CachedResponse("[]", now);
+        old.Pending.Add(new PendingChange(Guid.NewGuid(), credentials, "{}", "Test", now, null));
+        old.Failed.Add(new FailedChange(Guid.NewGuid(), "Test", "Test", now, Path: "/" + registration, Body: "{}"));
+        store.Save(old);
+
+        var offline = new OfflineCache(store);
+        var stub = new StubApi().On($"GET /{registration}", new FiscalRegistrationDto(register.Code, "", "", null, "test", true, null))
+            .On($"GET /{credentials}", new FiscalCredentialsDto([], null))
+            .On($"GET /{calendar}", SpaSample.CalendarDay());
+        var api = stub.Client(offline);
+        var ct = TestContext.Current.CancellationToken;
+        Assert.NotNull((await api.GetAsync<FiscalRegistrationDto>(registration, ct)).Value);
+        Assert.NotNull((await api.GetAsync<FiscalCredentialsDto>(credentials, ct)).Value);
+        Assert.NotNull((await api.GetAsync<object>(calendar, ct)).Value);
+        offline.Put(registration, "{}");
+        offline.Enqueue(new PendingChange(Guid.NewGuid(), "api/pos/registers", "{}", "Test", now, null));
+        offline.Flush();
+
+        var persisted = store.Load();
+        Assert.Null(offline.Get(registration));
+        Assert.Null(offline.Get(credentials));
+        Assert.Equal(new[] { calendar, normal }.Order(), persisted.Responses.Keys.Order());
+        Assert.Empty(persisted.Pending);
+        Assert.Empty(persisted.Failed);
+        stub.Down = true;
+        Assert.Null((await api.GetAsync<FiscalRegistrationDto>(registration, ct)).Value);
+        Assert.Null((await api.GetAsync<FiscalCredentialsDto>(credentials, ct)).Value);
+        Assert.NotNull((await api.GetAsync<object>(calendar, ct)).CachedAt);
+        Assert.NotNull((await api.GetAsync<List<ReceiptDto>>(normal, ct)).CachedAt);
+    }
+
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     private sealed class SampleTime : TimeProvider

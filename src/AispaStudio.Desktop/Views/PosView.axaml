@@ -1118,6 +1118,8 @@
               <ui:HelpButton Topic="kassa-tagesabschluss" Section="schritte" />
             </StackPanel>
             <TextBlock Text="{Binding ReportPeriod}" Classes="muted small" />
+            <ui:InfoBar x:Name="PracticeClosingBand" Severity="Warning" Title="Übungskassa" Message="Dieser Abschluss enthält Übungsumsätze."
+                        IsVisible="{Binding IsPracticeReport}" />
             <Grid ColumnDefinitions="*,Auto" Margin="0,6,0,0">
               <TextBlock Text="Umsatz" FontSize="16" FontWeight="SemiBold" />
               <TextBlock Grid.Column="1" Text="{Binding ReportRevenue}" FontSize="22" FontWeight="SemiBold" Classes="num" />

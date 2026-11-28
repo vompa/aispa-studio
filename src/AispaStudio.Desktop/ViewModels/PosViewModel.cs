@@ -647,6 +647,21 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
             {
                 Registers.Add(updated);
             }
+            else if (previous != updated)
+            {
+                var index = Registers.IndexOf(previous);
+                if (selected?.Id == updated.Id)
+                {
+                    // Der neue Eintrag muss auswählbar sein, bevor der alte aus der ComboBox verschwindet.
+                    Registers.Insert(index + 1, updated);
+                    Register = updated;
+                    Registers.RemoveAt(index);
+                }
+                else
+                {
+                    Registers[index] = updated;
+                }
+            }
 
             if (selected is null)
             {
@@ -666,8 +681,14 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
         }
     }
 
-    partial void OnRegisterChanged(CashRegisterDto? value)
+    partial void OnRegisterChanged(CashRegisterDto? oldValue, CashRegisterDto? newValue)
     {
+        Warning = newValue?.Warnings.Count > 0 ? string.Join(" ", newValue.Warnings) : null;
+        if (newValue is not null && oldValue?.Id == newValue.Id)
+        {
+            return;
+        }
+
         SetBill(null);
         Receipt = null;
         OpenBills.Clear();
@@ -681,16 +702,15 @@ public partial class PosViewModel : ViewModelBase, IFocusTarget
         PrintText = null;
         CancelInvoice();
         OnlinePayments = null;
-        Warning = value?.Warnings.Count > 0 ? string.Join(" ", value.Warnings) : null;
         Payments.Clear();
-        foreach (var method in value?.PaymentMethods ?? [])
+        foreach (var method in newValue?.PaymentMethods ?? [])
         {
             Payments.Add(new PaymentEntry(method, UpdateCover));
         }
 
         _ = LoadDayAsync();
-        _ = LoadTerminalsAsync(value);
-        _ = LoadVoucherExpiryAsync(value);
+        _ = LoadTerminalsAsync(newValue);
+        _ = LoadVoucherExpiryAsync(newValue);
         OnRegisterChangedForModes();
     }
 

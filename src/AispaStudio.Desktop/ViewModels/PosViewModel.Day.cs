@@ -98,7 +98,7 @@ public partial class PosViewModel
     // ---------- Tagesabschluss ----------
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(HasReport), nameof(ReportRevenue), nameof(ReportPayments), nameof(ReportTaxes), nameof(ReportAccounts),
+    [NotifyPropertyChangedFor(nameof(HasReport), nameof(IsPracticeReport), nameof(ReportRevenue), nameof(ReportPayments), nameof(ReportTaxes), nameof(ReportAccounts),
         nameof(ReportCash), nameof(ReportTitle), nameof(ReportPeriod), nameof(ExpectedCashText), nameof(DifferenceText), nameof(IsClosed))]
     [NotifyCanExecuteChangedFor(nameof(CloseDayCommand))]
     public partial DayClosingDto? Report { get; private set; }
@@ -145,6 +145,8 @@ public partial class PosViewModel
     }
 
     public bool HasReport => Report is not null;
+
+    public bool IsPracticeReport => Report?.IsPractice == true;
 
     public string ReportTitle => IsClosed ? "Tagesabschluss gespeichert" : "Zwischenbericht seit dem letzten Abschluss";
 
@@ -456,7 +458,7 @@ public partial class PosViewModel
 
     /// <summary>Pfad des PDFs des gespeicherten Abschlusses; Speichern und Drucken, kein Versand.</summary>
     internal static DocumentSource ClosingDocumentSource(DayClosingDto closing, bool mayReadAmounts) =>
-        new("Tagesabschluss", $"api/pos/registers/{closing.RegisterId}/day-closings/{closing.Id}/pdf", IsAllowed: mayReadAmounts,
+        new(closing.IsPractice ? "Tagesabschluss · Übungskassa" : "Tagesabschluss", $"api/pos/registers/{closing.RegisterId}/day-closings/{closing.Id}/pdf", IsAllowed: mayReadAmounts,
             DisabledHint: "Dafür braucht es das Recht „Berichte mit Beträgen“.");
 
     private string ClosingConsequence(DayClosingDto fresh)

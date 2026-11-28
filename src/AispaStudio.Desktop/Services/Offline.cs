@@ -107,7 +107,7 @@ public sealed class WindowsOfflineStore : IOfflineStore
 /// Hält die zuletzt geladenen Antworten (Kalender, Stammdaten, Kunden) und die ohne Verbindung vorgemerkten Änderungen.
 /// Gesundheitsdaten werden nie zwischengespeichert. Beim Abmelden wird das Gelesene gelöscht; Vorgemerktes bleibt, bis es gesendet ist.
 /// </summary>
-public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
+public sealed class OfflineCache
 {
     /// <summary>Was älter ist, wird nicht mehr gezeigt und beim Speichern verworfen.</summary>
     public static readonly TimeSpan MaxAge = TimeSpan.FromDays(14);
@@ -133,12 +133,32 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
         "api/pos/locations",
     ];
 
-    private readonly TimeProvider _time = time ?? TimeProvider.System;
+    private readonly IOfflineStore _store;
+    private readonly TimeProvider _time;
     private readonly Lock _lock = new();
     private readonly HashSet<Guid> _decommissionedRegisters = [];
-    private OfflineState? _state;
+    private OfflineState _state;
     private DateTimeOffset _lastSave = DateTimeOffset.MinValue;
     private bool _dirty;
+
+    public OfflineCache(IOfflineStore store, TimeProvider? time = null)
+    {
+        _store = store;
+        _time = time ?? TimeProvider.System;
+        _state = store.Load();
+        var protectedKeys = _state.Responses.Keys.Where(IsProtected).ToArray();
+        foreach (var key in protectedKeys)
+        {
+            _state.Responses.Remove(key);
+        }
+
+        var pending = _state.Pending.RemoveAll(change => !CanQueue(change.Path));
+        var failed = _state.Failed.RemoveAll(change => change.Path is { } path && !CanQueue(path));
+        if (protectedKeys.Length != 0 || pending != 0 || failed != 0)
+        {
+            Persist();
+        }
+    }
 
     /// <summary>Vorgemerkte oder abgelehnte Änderungen haben sich geändert.</summary>
     public event Action? Changed;
@@ -174,16 +194,40 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
     public static bool IsCacheable(string path)
     {
         var p = path.TrimStart('/');
-        return Cacheable.Any(prefix => p == prefix || p.StartsWith(prefix + "/", StringComparison.Ordinal) || p.StartsWith(prefix + "?", StringComparison.Ordinal))
+        return !IsProtected(path)
+            && Cacheable.Any(prefix => p == prefix || p.StartsWith(prefix + "/", StringComparison.Ordinal) || p.StartsWith(prefix + "?", StringComparison.Ordinal))
             && !p.Contains("anamnes", StringComparison.OrdinalIgnoreCase)
             && !p.Contains("health", StringComparison.OrdinalIgnoreCase)
             && !p.StartsWith(AnonymizedPath, StringComparison.Ordinal);
     }
 
-    private OfflineState State => _state ??= store.Load();
+    internal static bool CanQueue(string path) =>
+        !IsProtected(path) && !string.Equals(EndpointPath(path), RegistersPath, StringComparison.OrdinalIgnoreCase);
+
+    private static bool IsProtected(string path)
+    {
+        var endpoint = EndpointPath(path);
+        return endpoint.StartsWith(RegistersPath + "/", StringComparison.OrdinalIgnoreCase)
+            && (endpoint.EndsWith("/fiscal-credentials", StringComparison.OrdinalIgnoreCase)
+                || endpoint.EndsWith("/fiscal-registration", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static string EndpointPath(string path)
+    {
+        var route = Uri.TryCreate(path, UriKind.Absolute, out var uri) && !uri.IsFile ? uri.AbsolutePath : path.Split('?', '#')[0];
+        route = Uri.UnescapeDataString(route).Trim('/');
+        return route.StartsWith("api/v1/", StringComparison.OrdinalIgnoreCase) ? "api/" + route["api/v1/".Length..] : route;
+    }
+
+    private OfflineState State => _state;
 
     public void Put(string path, string json)
     {
+        if (IsProtected(path))
+        {
+            return;
+        }
+
         lock (_lock)
         {
             if (Key(path).StartsWith(CustomerSearch, StringComparison.Ordinal))
@@ -292,6 +336,11 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
 
     public CachedResponse? Get(string path)
     {
+        if (IsProtected(path))
+        {
+            return null;
+        }
+
         lock (_lock)
         {
             if (State.Responses.TryGetValue(Key(path), out var hit) && !IsExpired(hit))
@@ -353,6 +402,11 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
 
     public void Enqueue(PendingChange change)
     {
+        if (!CanQueue(change.Path))
+        {
+            return;
+        }
+
         lock (_lock)
         {
             State.Pending.Add(change.TenantId is null ? change with { TenantId = _tenant } : change);
@@ -368,7 +422,7 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
         {
             var tenant = State.Pending.FirstOrDefault(p => p.Id == id)?.TenantId ?? _tenant;
             State.Pending.RemoveAll(p => p.Id == id);
-            if (failure is not null)
+            if (failure is not null && (failure.Path is null || CanQueue(failure.Path)))
             {
                 State.Failed.Add(failure.TenantId is null ? failure with { TenantId = tenant } : failure);
             }
@@ -426,7 +480,7 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
             _decommissionedRegisters.Clear();
             if (kept.Pending.Count == 0 && kept.Failed.Count == 0)
             {
-                store.Clear();
+                _store.Clear();
             }
             else
             {
@@ -556,7 +610,7 @@ public sealed class OfflineCache(IOfflineStore store, TimeProvider? time = null)
             State.Responses.Remove(old);
         }
 
-        store.Save(State);
+        _store.Save(State);
         _dirty = false;
         _lastSave = _time.GetUtcNow();
     }
