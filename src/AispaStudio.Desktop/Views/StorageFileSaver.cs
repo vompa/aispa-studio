@@ -9,11 +9,12 @@ namespace AispaStudio.Desktop.Views;
 public sealed class StorageFileSaver(Visual host) : IFileSaver, IReportsSavedPath
 {
     public string? LastSavedPath { get; private set; }
+    internal TopLevel? Window => TopLevel.GetTopLevel(host);
 
     public async Task<bool> SaveAsync(string suggestedName, string typeName, IReadOnlyList<string> patterns, byte[] content)
     {
         LastSavedPath = null;
-        if (TopLevel.GetTopLevel(host)?.StorageProvider is not { CanSave: true } storage)
+        if (Window?.StorageProvider is not { CanSave: true } storage)
         {
             return false;
         }

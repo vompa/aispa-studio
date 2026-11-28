@@ -1,8 +1,14 @@
 using System.Net;
+using System.Runtime.Versioning;
 using System.Text.Json;
 using AispaStudio.Contracts;
+using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Dialogs;
+using Avalonia.Headless;
 
 namespace AispaStudio.Desktop.Tests;
 
@@ -43,6 +49,60 @@ public sealed class DocumentActionsTests
         }
 
         throw new TimeoutException("Der Dialog kam nicht.");
+    }
+
+    [Fact]
+    public async Task PDF_Speichern_oeffnet_nach_erneuter_Navigation_den_Dialog_am_aktuellen_Fenster()
+    {
+        await FileDialogSession.Current.Dispatch(async () =>
+        {
+            var model = new DocumentActionsViewModel(Source(), Api().Client(), null);
+            var first = new DocumentActions { DataContext = model };
+            var previousWindow = new Window { Content = first };
+            previousWindow.Show();
+            previousWindow.Content = null;
+            previousWindow.Close();
+            Assert.Null(TopLevel.GetTopLevel(first));
+
+            var current = new DocumentActions { DataContext = model };
+            var window = new Window { Content = current };
+            window.Show();
+            try
+            {
+                Assert.Same(window, TopLevel.GetTopLevel(current));
+                var saving = model.SaveCommand.ExecuteAsync(null);
+                for (var attempt = 0; !saving.IsCompleted && window.OwnedWindows.Count == 0 && attempt < 200; attempt++)
+                {
+                    await Task.Delay(10, TestContext.Current.CancellationToken);
+                }
+
+                Assert.Single(window.OwnedWindows).Close();
+                await saving;
+                var files = new RecordingFileSaver();
+                model.Files = files;
+                window.Content = new DocumentActions { DataContext = model };
+                await model.SaveCommand.ExecuteAsync(null);
+                Assert.Equal(Pdf, files.Saved?.Content);
+            }
+            finally
+            {
+                window.Close();
+            }
+            return true;
+        }, TestContext.Current.CancellationToken);
+    }
+
+    private static class FileDialogSession
+    {
+        internal static readonly HeadlessUnitTestSession Current = HeadlessUnitTestSession.StartNew(typeof(FileDialogApp));
+    }
+
+    public sealed class FileDialogApp
+    {
+        [SupportedOSPlatform("linux")]
+        [SupportedOSPlatform("macos")]
+        [SupportedOSPlatform("windows")]
+        public static AppBuilder BuildAvaloniaApp() => HeadlessApp.BuildAvaloniaApp().UseManagedSystemDialogs();
     }
 
     [Fact]

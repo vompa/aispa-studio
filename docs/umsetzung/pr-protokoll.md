@@ -8998,3 +8998,7 @@ Zusätzlich bestand der reguläre Zwei-Datenbank-Test `Fiskalanbieter_Abgleich_u
 Eine im November neu eingerichtete österreichische Kassa zeigte im Assistenten und in der Verwaltung einen fehlenden Jahresbeleg für das Jahr vor ihrer Einrichtung. Die API liefert einen Prüfstatus jetzt nur für einen gültigen Beleg oder einen fälligen Abschluss. Für das laufende Jahr beginnt die Anzeige am 15. Dezember. Bereits ausgestellte Jahresbelege bleiben auch nach einer Betriebspause zur Prüfung oder mit ihrer Bestätigung sichtbar.
 
 Fehlt beim Weiterbetrieb im neuen Jahr ein gültiger Vorjahresabschluss, bleibt sein Status auch bei anschließender Außerbetriebnahme sichtbar. Wechselt die Anzeige im Dezember auf das neue Abschlussjahr, führt sie den offenen Altabschluss weiter in der Liste der Jahresbelege. Der Kassenstatus lässt für die inaktive Kassa keine Erstellung zu.
+
+## PDF-Speicherdialog nach der Rückkehr zur Kassa (28.11.2026)
+
+Nach einem Seitenwechsel blieb der zuletzt bezahlte Beleg sichtbar, doch beim Speichern seines A4- oder Bon-PDFs öffnete sich kein Dialog. Der gemeinsame Dokumentknopf bindet den nativen Dateidialog jetzt an das Fenster, in dem der Beleg angezeigt wird. Der Avalonia-Fenstertest verwendet dasselbe Dokument nach dem Wechsel und prüft, dass der Dialog dem aktuellen Fenster gehört.
