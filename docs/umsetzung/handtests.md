@@ -2172,6 +2172,8 @@ Closes: T-136 (ADR 0104, Entscheidung 4)
 Result: ☐
 
 ### T-138 – Übungsbeleg und lange Kassa-ID
+Ergänzende Abnahme vom 28.11.2026: [Ergebnis je Handschritt und verbleibende Betreiberprüfungen](kassa-handtest-2026-11-28.md). Native Bedienung, kontrollierte Kalenderprüfungen und physischer Druck sind dort getrennt belegt; die Gesamtfelder bleiben bis zur vollständigen jeweiligen Abnahme offen.
+
 Start: Einen isolierten Testdatenbestand nach dem Upgrade als Inhaberin öffnen; keine echten Umsätze verwenden. Die neue Kassenverwaltung steht ab T-141/T-142 zur Verfügung.
 1. Eine österreichische oder deutsche Übungskassa auswählen und einen Testverkauf abschließen.
 Expected: Das Beleg-PDF zeigt dauerhaft „ÜBUNGSKASSA – kein gültiger Beleg“.
@@ -2240,7 +2242,7 @@ Result: ☐
 
 ### T-143 – FinanzOnline-Daten, Offlinezustand und Bestätigungen
 Start: Isoliertes Test-Spa mit österreichischer sowie deutscher Übungskassa. Als berechtigte Inhaberin anmelden und ausschließlich Übungsdaten verwenden.
-1. Für die österreichische Kassa „Registrierungsdaten anzeigen“ wählen. Ein Feld über „Kopieren“ in einen lokalen Testeditor übernehmen.
+1. Für die österreichische Kassa „Registrierungsdaten laden“ wählen. Ein Feld über „Kopieren“ in einen lokalen Testeditor übernehmen.
 Expected: Der übernommene Wert entspricht dem gewählten Feld. Der Abschnitt warnt vor der Registrierung einer Übungskassa. Keine Werte an FinanzOnline übertragen.
 2. Die Verbindung der App trennen. Den Abruf und das Kopieren wiederholen, die Kassa wechseln und die Kassenverwaltung offline erneut öffnen.
 Expected: Alte Schlüsselwerte erscheinen nicht erneut. Kopieren und Nachladen sensibler Werte sind offline gesperrt. Die übrigen erlaubten Offline-Ansichten bleiben benutzbar.
