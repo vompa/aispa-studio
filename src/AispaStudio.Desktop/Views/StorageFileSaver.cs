@@ -9,7 +9,17 @@ namespace AispaStudio.Desktop.Views;
 public sealed class StorageFileSaver(Visual host) : IFileSaver, IReportsSavedPath
 {
     public string? LastSavedPath { get; private set; }
-    internal TopLevel? Window => TopLevel.GetTopLevel(host);
+    private ISavesFiles? DefaultFor { get; init; }
+
+    internal static void BindWindow(ISavesFiles model, TopLevel window)
+    {
+        if (model.Files is null || model.Files is StorageFileSaver saver && saver.DefaultFor == model && saver.Window != window)
+        {
+            model.Files = new StorageFileSaver(window) { DefaultFor = model };
+        }
+    }
+
+    private TopLevel? Window => TopLevel.GetTopLevel(host);
 
     public async Task<bool> SaveAsync(string suggestedName, string typeName, IReadOnlyList<string> patterns, byte[] content)
     {

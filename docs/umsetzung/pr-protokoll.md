@@ -9002,3 +9002,5 @@ Fehlt beim Weiterbetrieb im neuen Jahr ein gültiger Vorjahresabschluss, bleibt 
 ## PDF-Speicherdialog nach der Rückkehr zur Kassa (28.11.2026)
 
 Nach einem Seitenwechsel blieb der zuletzt bezahlte Beleg sichtbar, doch beim Speichern seines A4- oder Bon-PDFs öffnete sich kein Dialog. Der gemeinsame Dokumentknopf bindet den nativen Dateidialog jetzt an das Fenster, in dem der Beleg angezeigt wird. Der Avalonia-Fenstertest verwendet dasselbe Dokument nach dem Wechsel und prüft, dass der Dialog dem aktuellen Fenster gehört.
+
+Das Ausgabemenü des Managementberichts verwendet dieselbe Fensterbindung, auch wenn der Bericht beim erneuten Öffnen bereits geladen ist. Ein ausdrücklich vorgegebenes Speicherfenster bleibt für das Dokument zuständig.

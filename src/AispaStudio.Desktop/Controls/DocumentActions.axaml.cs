@@ -16,11 +16,9 @@ public partial class DocumentActions : UserControl
 
     private void BindFileSaver()
     {
-        if (DataContext is DocumentActionsViewModel model && TopLevel.GetTopLevel(this) is { } window
-            && (model.Files is null || model.Files is StorageFileSaver native && native.Window != window))
+        if (DataContext is DocumentActionsViewModel model && TopLevel.GetTopLevel(this) is { } window)
         {
-            // Das Dokument lebt beim Seitenwechsel weiter. Sein Dialog gehört dem Fenster.
-            model.Files = new StorageFileSaver(window);
+            StorageFileSaver.BindWindow(model, window);
         }
     }
 }

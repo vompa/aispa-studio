@@ -5,6 +5,7 @@ using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
+using AispaStudio.Desktop.Views;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Dialogs;
@@ -70,14 +71,7 @@ public sealed class DocumentActionsTests
             try
             {
                 Assert.Same(window, TopLevel.GetTopLevel(current));
-                var saving = model.SaveCommand.ExecuteAsync(null);
-                for (var attempt = 0; !saving.IsCompleted && window.OwnedWindows.Count == 0 && attempt < 200; attempt++)
-                {
-                    await Task.Delay(10, TestContext.Current.CancellationToken);
-                }
-
-                Assert.Single(window.OwnedWindows).Close();
-                await saving;
+                await AssertSaveDialogAsync(model, window);
                 var files = new RecordingFileSaver();
                 model.Files = files;
                 window.Content = new DocumentActions { DataContext = model };
@@ -90,6 +84,83 @@ public sealed class DocumentActionsTests
             }
             return true;
         }, TestContext.Current.CancellationToken);
+    }
+
+    [Fact]
+    public Task PDF_Speichern_respektiert_das_explizite_native_Zielfenster() => FileDialogSession.Current.Dispatch(async () =>
+    {
+        var intended = new Window();
+        var shown = new Window();
+        try
+        {
+            intended.Show();
+            var saver = new StorageFileSaver(intended);
+            var model = new DocumentActionsViewModel(Source(), Api().Client(), null) { Files = saver };
+            shown.Content = new DocumentActions { DataContext = model };
+            shown.Show();
+            await AssertSaveDialogAsync(model, intended);
+            Assert.Same(saver, model.Files);
+        }
+        finally
+        {
+            shown.Close();
+            intended.Close();
+        }
+        return true;
+    }, TestContext.Current.CancellationToken);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Management_PDF_Speichern_oeffnet_nach_erneuter_Navigation_den_Dialog(bool alreadyLoaded) => FileDialogSession.Current.Dispatch(async () =>
+    {
+        var location = StockSample.Salzburg;
+        var from = new DateOnly(2026, 10, 1);
+        var until = new DateOnly(2026, 10, 31);
+        var route = $"GET /api/reports/locations/{location.Id}/management";
+        var range = "?from=2026-10-01&until=2026-10-31";
+        var api = new StubApi().On(route + range, new ManagementReportDto(location.Id, from, until, [], [], [], [], [], [], false))
+            .OnFile(route + "/pdf" + range, Pdf, "Bericht.pdf");
+        var reports = new ReportsViewModel(api.Client(), TestData.Owner(), TimeProvider.System);
+        var first = new ReportsView { DataContext = reports };
+        var window = new Window();
+        try
+        {
+            if (!alreadyLoaded)
+            {
+                window.Content = first;
+                window.Show();
+            }
+            reports.Management.SetRange(from, until);
+            await reports.Management.ShowAsync(location, until);
+            var document = Assert.IsType<DocumentActionsViewModel>(reports.Management.Document);
+            if (alreadyLoaded)
+            {
+                window.Content = first;
+                window.Show();
+            }
+            window.Content = new ReportsView { DataContext = reports };
+            Assert.Null(TopLevel.GetTopLevel(first));
+            Assert.Same(document, reports.Management.Document);
+            await AssertSaveDialogAsync(document, window);
+        }
+        finally
+        {
+            window.Close();
+        }
+        return true;
+    }, TestContext.Current.CancellationToken);
+
+    private static async Task AssertSaveDialogAsync(DocumentActionsViewModel model, Window owner)
+    {
+        var saving = model.SaveCommand.ExecuteAsync(null);
+        for (var attempt = 0; !saving.IsCompleted && owner.OwnedWindows.Count == 0 && attempt < 200; attempt++)
+        {
+            await Task.Delay(10, TestContext.Current.CancellationToken);
+        }
+
+        Assert.Single(owner.OwnedWindows).Close();
+        await saving;
     }
 
     private static class FileDialogSession
