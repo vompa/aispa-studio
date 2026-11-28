@@ -38,7 +38,7 @@
     <!-- Empfangsgerät: Warnung vor dem Abmelden ohne Eingabe als Karte in der Mitte über dem Scrim; jede Eingabe (auch ein Klick auf den Scrim) hebt sie auf -->
     <Panel x:Name="IdleOverlay" IsVisible="{Binding IsIdleWarning}">
       <Border x:Name="IdleScrim" Classes="scrim" />
-      <ui:InfoBar x:Name="IdleCard" Severity="Warning" Message="{Binding IdleText}" ActionText="Weiter arbeiten" ActionCommand="{Binding KeepWorkingCommand}"
+      <ui:InfoBar x:Name="IdleCard" Severity="Warning" Message="{Binding IdleText}" ActionText="{Binding IdleActionText}" ActionCommand="{Binding KeepWorkingCommand}"
                   HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="480" BoxShadow="{DynamicResource RaisedShadow}" />
     </Panel>
 

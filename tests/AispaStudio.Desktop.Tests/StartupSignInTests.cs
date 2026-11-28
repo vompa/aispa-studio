@@ -48,15 +48,17 @@ public sealed class StartupSignInTests
             SignInTimeout = TimeSpan.FromMilliseconds(200),
         };
 
-    [Fact]
-    public async Task Nach_Verbindungsausfall_und_Zeitlimit_der_Anmeldung_startet_die_gemerkte_Person_offline()
+    [Theory]
+    [InlineData(HttpStatusCode.OK)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task Nach_Verbindungsausfall_und_Zeitlimit_der_Anmeldung_startet_die_gemerkte_Person_offline(HttpStatusCode status)
     {
         var server = new StubApi().On("GET /api/auth/me", TestData.Reception());
         var cache = new OfflineCache(new MemoryOfflineStore());
         var session = new MemorySessionStore();
         session.Save("test-session");
         Assert.NotNull((await server.Client(cache, session).GetAsync<CurrentUser>("api/auth/me", TestContext.Current.CancellationToken)).Value);
-        server.On("GET /api/system/status", null, HttpStatusCode.ServiceUnavailable);
+        server.On("GET /api/system/status", new SystemStatus("1", "Test", DateTimeOffset.UtcNow), status);
         server.Hold("GET /api/auth/me", new TaskCompletionSource().Task);
         var vm = new MainViewModel(server.Client(cache, session))
         {
@@ -76,7 +78,8 @@ public sealed class StartupSignInTests
     public async Task Eine_abgelehnte_Anmeldung_hat_Vorrang_vor_dem_gemerkten_Zugriff(HttpStatusCode status)
     {
         var server = new StubApi().On("GET /api/auth/me", TestData.Reception());
-        var cache = new OfflineCache(new MemoryOfflineStore());
+        var store = new MemoryOfflineStore();
+        var cache = new OfflineCache(store);
         var session = new MemorySessionStore();
         session.Save("test-session");
         var api = server.Client(cache, session);
@@ -89,6 +92,16 @@ public sealed class StartupSignInTests
 
         Assert.False(vm.IsSignedIn);
         Assert.IsNotType<ShellViewModel>(vm.Content);
+
+        cache.Flush();
+        server.Down = true;
+        var reloaded = new OfflineCache(store);
+        var restarted = new MainViewModel(server.Client(reloaded, session)) { ProbeWindow = TimeSpan.Zero };
+        await restarted.StartAsync();
+
+        Assert.False(restarted.IsSignedIn);
+        Assert.Null(restarted.Content);
+        Assert.Null(reloaded.Get("api/auth/me"));
     }
 
     [Fact]

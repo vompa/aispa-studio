@@ -15,7 +15,8 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     public const int IdleWarningSeconds = 30;
 
     /// <summary>Der eine Rückfragedialog des Fensters (Design-Brief 5.27); die Arbeitsfläche stellt ihre Rückfragen darüber.</summary>
-    public ConfirmDialogHost DialogHost { get; } = new();
+    [ObservableProperty]
+    public partial ConfirmDialogHost DialogHost { get; private set; } = new();
 
     /// <summary>Schließt die App (nach dem Löschen der Beispieldaten im Einzelplatz); sie beendet dabei API und Datenbank geordnet.</summary>
     public Action? CloseApp { get; init; }
@@ -23,7 +24,10 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     private readonly ThemeController _theme = theme ?? new ThemeController(new MemorySettingsStore());
     private readonly TimeProvider _time = time ?? TimeProvider.System;
     private DateTimeOffset _lastActivity;
-    private bool _idleSigningOut;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanShowContent), nameof(IsOffline), nameof(IsIdleWarning), nameof(IdleText), nameof(IdleActionText))]
+    public partial bool IsIdleSigningOut { get; private set; }
 
     /// <summary>Gesetzt, wenn dieser PC ein Empfangsgerät ist: dann meldet die App nach der Leerlaufzeit ab (ADR 0042).</summary>
     [ObservableProperty]
@@ -34,13 +38,20 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     [NotifyPropertyChangedFor(nameof(IsIdleWarning), nameof(IdleText))]
     public partial int? IdleSecondsLeft { get; private set; }
 
-    public bool IsIdleWarning => IdleSecondsLeft is not null;
+    public bool IsIdleWarning => IsIdleSigningOut || IdleSecondsLeft is not null;
 
-    public string IdleText => IdleSecondsLeft is { } s ? $"Ohne Eingabe wird in {s} Sekunden abgemeldet." : "";
+    public string IdleText => IsIdleSigningOut ? "Sie werden abgemeldet." : IdleSecondsLeft is { } s ? $"Ohne Eingabe wird in {s} Sekunden abgemeldet." : "";
+
+    public string? IdleActionText => IsIdleSigningOut ? null : "Weiter arbeiten";
 
     /// <summary>Maus, Tastatur oder Berührung: der Leerlauf beginnt neu.</summary>
     public void NoteActivity()
     {
+        if (IsIdleSigningOut)
+        {
+            return;
+        }
+
         _lastActivity = _time.GetUtcNow();
         IdleSecondsLeft = null;
     }
@@ -54,7 +65,12 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     /// </summary>
     public async Task TickAsync()
     {
-        if (Device is not { } device || Content is not ShellViewModel shell || _idleSigningOut)
+        if (IsIdleSigningOut)
+        {
+            return;
+        }
+
+        if (Device is not { } device || Content is not ShellViewModel shell)
         {
             IdleSecondsLeft = null;
             return;
@@ -67,15 +83,25 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             return;
         }
 
+        IsIdleSigningOut = true;
         IdleSecondsLeft = null;
-        _idleSigningOut = true;
+        User = null;
+        Content = null;
+        // Ein noch speichernder Dialog gehört zur abgemeldeten Person und darf später nicht über der Anmeldung erscheinen.
+        var dialog = DialogHost.Current;
+        DialogHost = new();
+        if (dialog?.CancelCommand.CanExecute(null) == true)
+        {
+            dialog.CancelCommand.Execute(null);
+        }
+
         try
         {
             await shell.SignOutCommand.ExecuteAsync(null).ConfigureAwait(true);
         }
         finally
         {
-            _idleSigningOut = false;
+            IsIdleSigningOut = false;
         }
     }
 
@@ -306,7 +332,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             }
             catch (OperationCanceledException)
             {
-                if (!IsConnected && api.Offline?.Read<CurrentUser>("api/auth/me") is { } cached)
+                if (api.Offline?.Read<CurrentUser>("api/auth/me") is { } cached)
                 {
                     return cached;
                 }

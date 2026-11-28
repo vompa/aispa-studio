@@ -204,14 +204,38 @@ public sealed partial class ViewTests
             await Pump();
             Assert.False(main.IsConnected);
             Assert.Contains(window.GetVisualDescendants().OfType<ShellView>(), shell => shell.IsEffectivelyVisible);
+            var dialog = main.DialogHost.AskAsync(new ConfirmRequest("Termin stornieren?", "Der Termin entfällt.", "Stornieren"));
             time.Advance(TimeSpan.FromSeconds(280));
             await main.TickAsync();
             await Pump();
             Assert.Equal(20, main.IdleSecondsLeft);
             Assert.True(window.FindControl<Panel>("IdleOverlay")!.IsEffectivelyVisible);
 
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            stub.Down = false;
+            stub.On("POST /api/auth/logout", null);
+            stub.Hold("POST /api/auth/logout", release.Task);
             time.Advance(TimeSpan.FromSeconds(20));
-            await main.TickAsync();
+            var signingOut = main.TickAsync();
+            try
+            {
+                await PumpUntil(() => stub.Calls.Any(call => call.Route == "POST /api/auth/logout"));
+                main.NoteActivity();
+                await main.TickAsync();
+                await Pump();
+                Assert.False(signingOut.IsCompleted);
+                Assert.False(main.IsSignedIn);
+                Assert.False(main.DialogHost.HasDialog);
+                Assert.Equal(ConfirmChoice.Cancelled, (await dialog).Choice);
+                Assert.True(window.FindControl<Panel>("IdleOverlay")!.IsEffectivelyVisible);
+                Assert.False(window.FindControl<ContentControl>("Main")!.IsEffectivelyVisible);
+            }
+            finally
+            {
+                release.TrySetResult();
+                await signingOut;
+            }
+
             await Pump();
             Assert.False(main.IsSignedIn);
             Assert.Null(session.Load());

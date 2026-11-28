@@ -408,6 +408,18 @@ public sealed class OfflineCache
         }
     }
 
+    /// <summary>Der Server hat die Identität abgelehnt. Sie darf beim nächsten Offline-Start keine Arbeitsfläche mehr öffnen.</summary>
+    internal void ForgetSignIn()
+    {
+        lock (_lock)
+        {
+            if (State.Responses.Remove("api/auth/me"))
+            {
+                Persist();
+            }
+        }
+    }
+
     /// <summary>Wann zuletzt etwas vom Server kam, für den Hinweis „Stand …“.</summary>
     public DateTimeOffset? LastSaved
     {

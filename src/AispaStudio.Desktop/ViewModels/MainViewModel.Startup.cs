@@ -42,10 +42,10 @@ public partial class MainViewModel
     public partial string StartupStep { get; private set; } = ConnectingStep;
 
     /// <summary>Die Anmeldung braucht eine Verbindung. Die Arbeitsfläche ist mit gemerktem Zugriff auch offline bedienbar (ADR 0005).</summary>
-    public bool CanShowContent => IsConnected || Content is ShellViewModel;
+    public bool CanShowContent => !IsIdleSigningOut && (IsConnected || Content is ShellViewModel);
 
     /// <summary>Der Start ist beendet und es gibt weder eine Verbindung noch eine Arbeitsfläche aus dem lokalen Stand.</summary>
-    public bool IsOffline => !CanShowContent && !IsStarting;
+    public bool IsOffline => !CanShowContent && !IsStarting && !IsIdleSigningOut;
 
     private StartChoiceViewModel? _startChoice;
 

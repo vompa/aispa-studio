@@ -59,6 +59,11 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
     public override async Task<ApiResult<T>> GetAsync<T>(string path, CancellationToken ct = default)
     {
         var result = await base.GetAsync<T>(path, ct).ConfigureAwait(false);
+        if (path == "api/auth/me" && result.Status is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        {
+            Offline?.ForgetSignIn();
+        }
+
         if (result.Ok && result.Value is QuickSwitchState state)
         {
             OnSharedDeviceChanged(state.Device);
