@@ -24,10 +24,56 @@ public class HttpApiClient : IAispaApi
     // Schon versioniert oder ohne Version (ADR 0085); dieselben Bereiche wie ApiVersion in der API.
     private static readonly string[] SkipPrefixes = [VersionPrefix, "api/online/", "api/hooks/", "api/operator/"];
 
-    private readonly HttpClient _http;
-    private readonly CookieContainer _cookies;
+    // Jede Sitzung besitzt ihren CookieContainer. Eine alte Antwort darf Set-Cookie nur dort anwenden.
+    private sealed class SessionTransport(CookieContainer cookies, HttpClient http) : IDisposable
+    {
+        private int _references = 1;
+
+        public CookieContainer Cookies { get; } = cookies;
+        public HttpClient Http { get; } = http;
+
+        public SessionTransport Retain()
+        {
+            Interlocked.Increment(ref _references);
+            return this;
+        }
+
+        public void Dispose()
+        {
+            if (Interlocked.Decrement(ref _references) == 0)
+            {
+                Http.Dispose();
+            }
+        }
+    }
+
+    private readonly HttpMessageHandler? _handler;
+    private readonly Func<X509Certificate2?, bool>? _serverCertificate;
+    private SessionTransport _transport;
     private readonly ISessionStore _store;
     private readonly ISessionStore _deviceStore;
+    private Task _lastCookieChange = Task.CompletedTask;
+    private long _sessionVersion;
+    private int _pendingLogouts;
+    private bool _authenticating;
+
+    protected Lock SessionLock { get; } = new();
+
+    protected long SessionVersion => Volatile.Read(ref _sessionVersion);
+
+    protected bool IsCurrentSession(long version) => version == SessionVersion && _pendingLogouts == 0 && !_authenticating;
+
+    // CookieContainer übernimmt Set-Cookie schon beim Empfang der Antwort. Nur diese Anmeldewechsel laufen in Aufrufreihenfolge.
+    private (Task Previous, TaskCompletionSource Finished) ReserveCookieChange()
+    {
+        lock (SessionLock)
+        {
+            var previous = _lastCookieChange;
+            var finished = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            _lastCookieChange = finished.Task;
+            return (previous, finished);
+        }
+    }
 
     /// <param name="serverCertificate">
     /// Gilt nur ein bestimmtes Server-Zertifikat (z. B. das selbst ausgestellte eines Haupt-PCs im Netz), prüft diese Funktion es.
@@ -37,30 +83,64 @@ public class HttpApiClient : IAispaApi
     {
         _store = store;
         _deviceStore = deviceStore ?? new MemorySessionStore();
-        _cookies = new CookieContainer();
+        BaseAddress = baseAddress;
+        _handler = handler;
+        _serverCertificate = serverCertificate;
+        var cookies = new CookieContainer();
         if (store.Load() is { } saved)
         {
-            _cookies.Add(baseAddress, new Cookie(CookieName, saved));
+            cookies.Add(baseAddress, new Cookie(CookieName, saved));
         }
 
         if (_deviceStore.Load() is { } device)
         {
-            _cookies.Add(baseAddress, new Cookie(DeviceCookieName, device));
+            cookies.Add(baseAddress, new Cookie(DeviceCookieName, device));
         }
 
-        // Kurzes Zeitlimit: am Empfang ist „keine Verbindung“ nach 20 Sekunden besser als eine hängende Oberfläche.
-        _http = handler is null
-            ? new HttpClient(new HttpClientHandler
-            {
-                CookieContainer = _cookies,
-                UseCookies = true,
-                ServerCertificateCustomValidationCallback = serverCertificate is null ? null : (_, certificate, _, _) => serverCertificate(certificate),
-            })
-            { BaseAddress = baseAddress, Timeout = TimeSpan.FromSeconds(20) }
-            : new HttpClient(handler) { BaseAddress = baseAddress, Timeout = TimeSpan.FromSeconds(20) };
+        _transport = CreateTransport(cookies);
     }
 
-    public Uri BaseAddress => _http.BaseAddress!;
+    public Uri BaseAddress { get; }
+
+    private SessionTransport CreateTransport(CookieContainer cookies)
+    {
+        var handler = _handler ?? new HttpClientHandler
+        {
+            CookieContainer = cookies,
+            UseCookies = true,
+            ServerCertificateCustomValidationCallback = _serverCertificate is null ? null : (_, certificate, _, _) => _serverCertificate(certificate),
+        };
+        return new(cookies, new HttpClient(handler, disposeHandler: _handler is null) { BaseAddress = BaseAddress, Timeout = TimeSpan.FromSeconds(20) });
+    }
+
+    private SessionTransport CopyTransport(bool deviceOnly = false)
+    {
+        var cookies = new CookieContainer();
+        foreach (Cookie cookie in _transport.Cookies.GetCookies(BaseAddress))
+        {
+            if (!deviceOnly || cookie.Name == DeviceCookieName)
+            {
+                cookies.Add(BaseAddress, cookie);
+            }
+        }
+
+        return CreateTransport(cookies);
+    }
+
+    private SessionTransport CurrentTransport()
+    {
+        lock (SessionLock)
+        {
+            return _transport.Retain();
+        }
+    }
+
+    private void ReplaceTransport(SessionTransport replacement)
+    {
+        var previous = _transport;
+        _transport = replacement;
+        previous.Dispose();
+    }
 
     /// <summary>Der letzte Aufruf erreichte den Server nicht.</summary>
     public bool IsOffline { get; private set; }
@@ -75,22 +155,30 @@ public class HttpApiClient : IAispaApi
     public const string Unreachable = "Keine Verbindung. Verbindung prüfen und erneut versuchen.";
 
     /// <summary>Aktuelles Anmelde-Cookie für SignalR (das eine eigene Verbindung aufbaut).</summary>
-    public string? SessionCookie => _cookies.GetCookies(BaseAddress)[CookieName]?.Value ?? _store.Load();
+    public string? SessionCookie
+    {
+        get
+        {
+            lock (SessionLock)
+            {
+                return _pendingLogouts == 0 ? _transport.Cookies.GetCookies(BaseAddress)[CookieName]?.Value ?? _store.Load() : null;
+            }
+        }
+    }
 
     /// <summary>Das Gerätekennzeichen ist vorhanden, auch wenn die letzte bestätigte Leerlaufvorgabe auf diesem PC noch fehlt.</summary>
-    public bool HasDeviceCookie => _cookies.GetCookies(BaseAddress)[DeviceCookieName] is not null;
+    public bool HasDeviceCookie => _transport.Cookies.GetCookies(BaseAddress)[DeviceCookieName] is not null;
 
-    public async Task<SystemStatus?> StatusAsync(CancellationToken ct = default) =>
-        await _http.GetFromJsonAsync<SystemStatus>(Versioned("api/system/status"), ApiJson.Options, ct).ConfigureAwait(false);
+    public async Task<SystemStatus?> StatusAsync(CancellationToken ct = default)
+    {
+        using var transport = CurrentTransport();
+        return await transport.Http.GetFromJsonAsync<SystemStatus>(Versioned("api/system/status"), ApiJson.Options, ct).ConfigureAwait(false);
+    }
 
     public async Task<ApiResult<CurrentUser>> SignInWithCodeAsync(string code, CancellationToken ct = default)
     {
-        var result = await SendAsync<CurrentUser>(HttpMethod.Post, "api/auth/device-code/redeem", new DeviceCodeRedeem(code), ct).ConfigureAwait(false);
-        if (result.Ok)
-        {
-            Remember();
-        }
-        else if (result.Status == HttpStatusCode.Unauthorized)
+        var result = await AuthenticateAsync("api/auth/device-code/redeem", new DeviceCodeRedeem(code), ct).ConfigureAwait(false);
+        if (result.Status == HttpStatusCode.Unauthorized)
         {
             return result with { Error = "Der Code stimmt nicht, ist abgelaufen oder wurde schon verwendet." };
         }
@@ -102,26 +190,14 @@ public class HttpApiClient : IAispaApi
     /// Nur in der Entwicklungsumgebung der API: Anmeldung mit einem Testkonto des Beispiel-Spas (<c>@demo.aispa.test</c>)
     /// ohne Einmal-Code. In Produktion gibt es den Endpunkt nicht.
     /// </summary>
-    public async Task<ApiResult<CurrentUser>> SignInAsTestAccountAsync(string email, CancellationToken ct = default)
-    {
-        var result = await SendAsync<CurrentUser>(HttpMethod.Post, "api/auth/dev/login", new DevLogin(email, true), ct).ConfigureAwait(false);
-        if (result.Ok)
-        {
-            Remember();
-        }
-
-        return result;
-    }
+    public Task<ApiResult<CurrentUser>> SignInAsTestAccountAsync(string email, CancellationToken ct = default) =>
+        AuthenticateAsync("api/auth/dev/login", new DevLogin(email, true), ct);
 
     /// <summary>Einzelplatz-Betrieb (ADR 0041): Anmeldung mit Benutzername und Passwort; die App bleibt angemeldet.</summary>
     public async Task<ApiResult<CurrentUser>> SignInWithPasswordAsync(string userName, string password, CancellationToken ct = default)
     {
-        var result = await SendAsync<CurrentUser>(HttpMethod.Post, "api/auth/standalone/login", new PasswordLogin(userName, password, true), ct).ConfigureAwait(false);
-        if (result.Ok)
-        {
-            Remember();
-        }
-        else if (result.Status == HttpStatusCode.Unauthorized)
+        var result = await AuthenticateAsync("api/auth/standalone/login", new PasswordLogin(userName, password, true), ct).ConfigureAwait(false);
+        if (result.Status == HttpStatusCode.Unauthorized)
         {
             return result with { Error = "Benutzername oder Passwort stimmt nicht." };
         }
@@ -130,47 +206,53 @@ public class HttpApiClient : IAispaApi
     }
 
     /// <summary>Einzelplatz, erster Start: Spa, ersten Standort und Inhaber-Konto anlegen; meldet gleich an.</summary>
-    public async Task<ApiResult<CurrentUser>> CompleteStandaloneSetupAsync(StandaloneSetup setup, CancellationToken ct = default)
-    {
-        var result = await SendAsync<CurrentUser>(HttpMethod.Post, "api/auth/standalone/setup", setup, ct).ConfigureAwait(false);
-        if (result.Ok)
-        {
-            Remember();
-        }
+    public Task<ApiResult<CurrentUser>> CompleteStandaloneSetupAsync(StandaloneSetup setup, CancellationToken ct = default) =>
+        AuthenticateAsync("api/auth/standalone/setup", setup, ct);
 
-        return result;
-    }
-
-    /// <summary>Eigenes Passwort ändern; nach einem Startpasswort Pflicht. Das neue Anmelde-Cookie wird gemerkt.</summary>
     /// <summary>Passwort vergessen ohne Leitung: neues Passwort mit dem Wiederherstellungsschlüssel, danach angemeldet.</summary>
-    public async Task<ApiResult<CurrentUser>> RecoverPasswordAsync(string userName, string recoveryCode, string newPassword, CancellationToken ct = default)
-    {
-        var result = await SendAsync<CurrentUser>(HttpMethod.Post, "api/auth/standalone/recover", new PasswordRecovery(userName, recoveryCode, newPassword), ct)
-            .ConfigureAwait(false);
-        if (result.Ok)
-        {
-            Remember();
-        }
+    public Task<ApiResult<CurrentUser>> RecoverPasswordAsync(string userName, string recoveryCode, string newPassword, CancellationToken ct = default) =>
+        AuthenticateAsync("api/auth/standalone/recover", new PasswordRecovery(userName, recoveryCode, newPassword), ct);
 
-        return result;
-    }
-
-    public async Task<ApiResult<CurrentUser>> ChangePasswordAsync(string currentPassword, string newPassword, CancellationToken ct = default)
-    {
-        var result = await SendAsync<CurrentUser>(HttpMethod.Post, "api/auth/standalone/password", new PasswordChange(currentPassword, newPassword), ct).ConfigureAwait(false);
-        if (result.Ok)
-        {
-            Remember();
-        }
-
-        return result;
-    }
+    /// <summary>Das eigene Passwort ändern erneuert dieselbe Anmeldung.</summary>
+    public Task<ApiResult<CurrentUser>> ChangePasswordAsync(string currentPassword, string newPassword, CancellationToken ct = default) =>
+        AuthenticateAsync("api/auth/standalone/password", new PasswordChange(currentPassword, newPassword), ct, renew: true);
 
     /// <summary>Abmelden. Das Kennzeichen des Empfangsgeräts bleibt, damit danach die nächste Person per PIN wechseln kann.</summary>
     public async Task SignOutAsync(CancellationToken ct = default)
     {
-        await SendAsync<object>(HttpMethod.Post, "api/auth/logout", null, ct).ConfigureAwait(false);
-        ForgetSession();
+        // Den Platz vor späteren Anmeldungen reservieren. HTTP darf das bisherige Cookie noch für diesen Logout senden.
+        var (turn, finished) = ReserveCookieChange();
+        SessionTransport? logout = null;
+        try
+        {
+            try
+            {
+                lock (SessionLock)
+                {
+                    _pendingLogouts++;
+                    _sessionVersion++;
+                    logout = CopyTransport();
+                    ReplaceTransport(CopyTransport(deviceOnly: true));
+                    ClearRememberedSession();
+                }
+            }
+            finally
+            {
+                await turn.ConfigureAwait(false);
+            }
+
+            await SendAsync<object>(HttpMethod.Post, "api/auth/logout", null, logout, SessionVersion, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            logout?.Dispose();
+            lock (SessionLock)
+            {
+                _pendingLogouts--;
+            }
+
+            finished.SetResult();
+        }
     }
 
     /// <summary>
@@ -179,13 +261,8 @@ public class HttpApiClient : IAispaApi
     /// </summary>
     public async Task<ApiResult<CurrentUser>> QuickSwitchAsync(string userId, string pin, CancellationToken ct = default)
     {
-        var result = await SendAsync<CurrentUser>(HttpMethod.Post, "api/auth/quick-switch", new QuickSwitchRequest(userId, pin), ct).ConfigureAwait(false);
-        if (result.Ok)
-        {
-            _store.Clear();
-            OnSessionEnded();
-        }
-        else if (result.Status == HttpStatusCode.Unauthorized)
+        var result = await AuthenticateAsync("api/auth/quick-switch", new QuickSwitchRequest(userId, pin), ct, remember: false).ConfigureAwait(false);
+        if (result.Status == HttpStatusCode.Unauthorized)
         {
             return result with { Error = "PIN falsch. Nach fünf Fehlversuchen ist sie 15 Minuten gesperrt." };
         }
@@ -197,7 +274,7 @@ public class HttpApiClient : IAispaApi
     public async Task<ApiResult<SharedDeviceDto>> RegisterDeviceAsync(SharedDeviceInput input, CancellationToken ct = default)
     {
         var result = await SendAsync<SharedDeviceDto>(HttpMethod.Post, "api/auth/shared-device", input, ct).ConfigureAwait(false);
-        if (result.Ok && _cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
+        if (result.Ok && _transport.Cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
         {
             _deviceStore.Save(cookie.Value);
         }
@@ -216,7 +293,7 @@ public class HttpApiClient : IAispaApi
         var result = await SendAsync<object>(HttpMethod.Delete, "api/auth/shared-device", null, ct).ConfigureAwait(false);
         if (result.Ok)
         {
-            if (_cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
+            if (_transport.Cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
             {
                 cookie.Expired = true;
             }
@@ -228,22 +305,25 @@ public class HttpApiClient : IAispaApi
         return result;
     }
 
-    private void ForgetSession()
+    protected void RejectSession()
     {
-        foreach (Cookie cookie in _cookies.GetCookies(BaseAddress))
-        {
-            if (cookie.Name != DeviceCookieName)
-            {
-                cookie.Expired = true;
-            }
-        }
+        _sessionVersion++;
+        ReplaceTransport(CopyTransport(deviceOnly: true));
+        ClearRememberedSession();
+    }
 
+    private void ClearRememberedSession()
+    {
         _store.Clear();
         OnSessionEnded();
     }
 
     /// <summary>Die Anmeldung dieser Person endet (Abmelden, Personenwechsel); ein abgeleiteter Client löscht hier ihren lokalen Stand.</summary>
     protected virtual void OnSessionEnded()
+    {
+    }
+
+    protected virtual void OnSessionConfirmed(CurrentUser user)
     {
     }
 
@@ -267,7 +347,8 @@ public class HttpApiClient : IAispaApi
     {
         try
         {
-            using var response = await _http.GetAsync(address, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+            using var transport = CurrentTransport();
+            using var response = await transport.Http.GetAsync(address, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
             return response.IsSuccessStatusCode && response.Content.Headers.ContentType?.MediaType == "text/html";
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
@@ -281,7 +362,8 @@ public class HttpApiClient : IAispaApi
     {
         try
         {
-            using var response = await _http.GetAsync(Versioned(path), ct).ConfigureAwait(false);
+            using var transport = CurrentTransport();
+            using var response = await transport.Http.GetAsync(Versioned(path), ct).ConfigureAwait(false);
             return response.IsSuccessStatusCode
                 ? new(await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false), null, response.StatusCode)
                 : new(null, await ErrorAsync(response, ct).ConfigureAwait(false), response.StatusCode);
@@ -298,7 +380,8 @@ public class HttpApiClient : IAispaApi
     {
         try
         {
-            using var response = await _http.GetAsync(Versioned(path), ct).ConfigureAwait(false);
+            using var transport = CurrentTransport();
+            using var response = await transport.Http.GetAsync(Versioned(path), ct).ConfigureAwait(false);
             return await ReadFileAsync(response, ct).ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
@@ -313,7 +396,8 @@ public class HttpApiClient : IAispaApi
     {
         try
         {
-            using var response = await _http.PostAsync(Versioned(path), body, ct).ConfigureAwait(false);
+            using var transport = CurrentTransport();
+            using var response = await transport.Http.PostAsync(Versioned(path), body, ct).ConfigureAwait(false);
             return await ReadFileAsync(response, ct).ConfigureAwait(false);
         }
         catch (HttpRequestException ex)
@@ -347,6 +431,22 @@ public class HttpApiClient : IAispaApi
     /// <summary>Senden; <paramref name="body"/> als fertiger <see cref="HttpContent"/> (z. B. ein vorgemerkter JSON-Text) oder als Objekt.</summary>
     protected async Task<ApiResult<T>> SendAsync<T>(HttpMethod method, string path, object? body, CancellationToken ct)
     {
+        SessionTransport active;
+        long version;
+        lock (SessionLock)
+        {
+            active = _transport.Retain();
+            version = SessionVersion;
+        }
+
+        using (active)
+        {
+            return await SendAsync<T>(method, path, body, active, version, ct).ConfigureAwait(false);
+        }
+    }
+
+    private async Task<ApiResult<T>> SendAsync<T>(HttpMethod method, string path, object? body, SessionTransport transport, long version, CancellationToken ct)
+    {
         try
         {
             using var request = new HttpRequestMessage(method, Versioned(path));
@@ -359,7 +459,7 @@ public class HttpApiClient : IAispaApi
                 request.Content = JsonContent.Create(body, body.GetType(), options: ApiJson.Options);
             }
 
-            using var response = await _http.SendAsync(request, ct).ConfigureAwait(false);
+            using var response = await transport.Http.SendAsync(request, ct).ConfigureAwait(false);
             SetOffline(false);
             if (response.IsSuccessStatusCode)
             {
@@ -371,7 +471,13 @@ public class HttpApiClient : IAispaApi
                 var json = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
                 if (method == HttpMethod.Get)
                 {
-                    OnJsonReceived(path, json);
+                    lock (SessionLock)
+                    {
+                        if (IsCurrentSession(version))
+                        {
+                            OnJsonReceived(path, json);
+                        }
+                    }
                 }
 
                 return new(json.Length == 0 ? default : JsonSerializer.Deserialize<T>(json, ApiJson.Options), null, response.StatusCode);
@@ -475,11 +581,65 @@ public class HttpApiClient : IAispaApi
         };
     }
 
-    private void Remember()
+    private async Task<ApiResult<CurrentUser>> AuthenticateAsync(string path, object input, CancellationToken ct, bool remember = true, bool renew = false)
     {
-        if (_cookies.GetCookies(BaseAddress)[CookieName] is { } cookie)
+        var (turn, finished) = ReserveCookieChange();
+        await turn.ConfigureAwait(false);
+        SessionTransport? candidate = null;
+        try
         {
-            _store.Save(cookie.Value);
+            lock (SessionLock)
+            {
+                candidate = CopyTransport();
+                _authenticating = true;
+                _sessionVersion++;
+            }
+
+            var result = await SendAsync<CurrentUser>(HttpMethod.Post, path, input, candidate, SessionVersion, ct).ConfigureAwait(false);
+            lock (SessionLock)
+            {
+                if (_pendingLogouts != 0)
+                {
+                    return new(null, "Die Anmeldung wurde beendet.", HttpStatusCode.Conflict);
+                }
+
+                if (result.Ok && result.Value is { } user)
+                {
+                    ReplaceTransport(candidate.Retain());
+                    if (!renew)
+                    {
+                        ClearRememberedSession();
+                    }
+
+                    if (remember && user is { Access: not null, MustChangePassword: false } && _transport.Cookies.GetCookies(BaseAddress)[CookieName] is { } cookie)
+                    {
+                        OnSessionConfirmed(user);
+                        _store.Save(cookie.Value);
+                    }
+                }
+            }
+
+            return result;
+        }
+        catch (IOException)
+        {
+            lock (SessionLock)
+            {
+                ReplaceTransport(CopyTransport(deviceOnly: true));
+            }
+
+            throw;
+        }
+        finally
+        {
+            lock (SessionLock)
+            {
+                _authenticating = false;
+                _sessionVersion++;
+            }
+
+            candidate?.Dispose();
+            finished.SetResult();
         }
     }
 }

@@ -179,8 +179,10 @@ public sealed partial class ViewTests
         return true;
     }, CancellationToken.None);
 
-    [Fact]
-    public Task Startbildschirm_offline_am_Empfangsgeraet_warnt_und_sperrt_die_Arbeitsflaeche_nach_Leerlauf() => Session.Dispatch(async () =>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Startbildschirm_offline_am_Empfangsgeraet_warnt_und_sperrt_die_Arbeitsflaeche_nach_Leerlauf(bool serverReturns) => Session.Dispatch(async () =>
     {
         var time = new StoppedTime();
         var store = new MemoryOfflineStore();
@@ -212,22 +214,28 @@ public sealed partial class ViewTests
             Assert.True(window.FindControl<Panel>("IdleOverlay")!.IsEffectivelyVisible);
 
             var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            stub.Down = false;
+            stub.Down = !serverReturns;
             stub.On("POST /api/auth/logout", null);
             stub.Hold("POST /api/auth/logout", release.Task);
             time.Advance(TimeSpan.FromSeconds(20));
             var signingOut = main.TickAsync();
             try
             {
-                await PumpUntil(() => stub.Calls.Any(call => call.Route == "POST /api/auth/logout"));
-                main.NoteActivity();
-                await main.TickAsync();
-                await Pump();
-                Assert.False(signingOut.IsCompleted);
+                if (serverReturns)
+                {
+                    await PumpUntil(() => stub.Calls.Any(call => call.Route == "POST /api/auth/logout"));
+                    main.NoteActivity();
+                    await main.TickAsync();
+                    await Pump();
+                    Assert.False(signingOut.IsCompleted);
+                    Assert.True(window.FindControl<Panel>("IdleOverlay")!.IsEffectivelyVisible);
+                }
+
+                Assert.Null(session.Load());
+                Assert.Null(new OfflineCache(store, time).Get("api/auth/me"));
                 Assert.False(main.IsSignedIn);
                 Assert.False(main.DialogHost.HasDialog);
                 Assert.Equal(ConfirmChoice.Cancelled, (await dialog).Choice);
-                Assert.True(window.FindControl<Panel>("IdleOverlay")!.IsEffectivelyVisible);
                 Assert.False(window.FindControl<ContentControl>("Main")!.IsEffectivelyVisible);
             }
             finally
@@ -237,6 +245,8 @@ public sealed partial class ViewTests
             }
 
             await Pump();
+            Assert.Single(stub.Requests, path => path.EndsWith("/auth/logout", StringComparison.Ordinal));
+            Assert.IsType<LoginViewModel>(main.Content);
             Assert.False(main.IsSignedIn);
             Assert.Null(session.Load());
             Assert.DoesNotContain(window.GetVisualDescendants().OfType<ShellView>(), shell => shell.IsEffectivelyVisible);

@@ -1309,8 +1309,8 @@ public partial class ShellViewModel : ViewModelBase, IDisposable
     {
         Companion.ForgetHistory();
         Dispose();
-        await Devices.DisposeAsync().ConfigureAwait(true);
-        await _signOut().ConfigureAwait(true);
+        // Die Abmeldung widerruft den lokalen Zugang sofort, auch wenn das Terminal seinen letzten Aufruf noch beendet.
+        await Task.WhenAll(_signOut(), Devices.DisposeAsync().AsTask()).ConfigureAwait(true);
     }
 
     internal static string RoleText(StaffRole role) => role switch

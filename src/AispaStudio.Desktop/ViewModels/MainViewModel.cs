@@ -299,7 +299,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
             IsConnected = false;
         }
 
-        if (signIn.Value is { Access: not null } user && (signIn.CachedAt is null || !string.IsNullOrWhiteSpace(api.SessionCookie)))
+        if (signIn.Value is { Access: not null, MustChangePassword: false } user && (signIn.CachedAt is null || !string.IsNullOrWhiteSpace(api.SessionCookie)))
         {
             await ShowShellAsync(user).ConfigureAwait(true);
         }
@@ -391,11 +391,23 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         var openSetupWizard = Content is LoginViewModel { SetupJustCompleted: true };
         // Ohne Antwort (älterer Server) alles zeigen wie bisher; ausgeschaltete Module antworten ohnehin mit 404 (ADR 0041).
         var modules = (await api.GetAsync<SystemModules>("api/system/modules").ConfigureAwait(true)).Value;
-        var deviceState = (await api.GetAsync<QuickSwitchState>("api/auth/quick-switch").ConfigureAwait(true)).Value;
-        Device = deviceState is null ? api.Offline?.SharedDevice : deviceState.Device;
-        if (deviceState is null && Device is null && api.HasDeviceCookie)
+        var deviceResult = await api.GetAsync<QuickSwitchState>("api/auth/quick-switch").ConfigureAwait(true);
+        Device = deviceResult.Value is { } state ? state.Device : api.Offline?.SharedDevice;
+        if (deviceResult.Value is null && Device is null && api.HasDeviceCookie)
         {
-            ShowConnectionFailure("Zum Laden der Leerlaufzeit dieses Empfangsgeräts ist eine Verbindung zum Server nötig.");
+            if (deviceResult.Status == 0)
+            {
+                ShowConnectionFailure("Zum Laden der Leerlaufzeit dieses Empfangsgeräts ist eine Verbindung zum Server nötig.");
+            }
+            else
+            {
+                User = null;
+                Content = null;
+                IsConnected = true;
+                ConnectionTitle = "Empfangsgerät konnte nicht geprüft werden";
+                StatusText = $"Der Server hat die Leerlaufzeit des Empfangsgeräts nicht geliefert (HTTP {(int)deviceResult.Status}).";
+            }
+
             return;
         }
 

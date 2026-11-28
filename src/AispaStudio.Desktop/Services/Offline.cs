@@ -408,17 +408,6 @@ public sealed class OfflineCache
         }
     }
 
-    /// <summary>Der Server hat die Identität abgelehnt. Sie darf beim nächsten Offline-Start keine Arbeitsfläche mehr öffnen.</summary>
-    internal void ForgetSignIn()
-    {
-        lock (_lock)
-        {
-            if (State.Responses.Remove("api/auth/me"))
-            {
-                Persist();
-            }
-        }
-    }
 
     /// <summary>Wann zuletzt etwas vom Server kam, für den Hinweis „Stand …“.</summary>
     public DateTimeOffset? LastSaved
@@ -454,7 +443,9 @@ public sealed class OfflineCache
         }
     }
 
-    public void Enqueue(PendingChange change)
+    public void Enqueue(PendingChange change) => EnqueueForTenant(change, change.TenantId ?? Tenant);
+
+    internal void EnqueueForTenant(PendingChange change, Guid? tenant)
     {
         if (!CanQueue(change.Path))
         {
@@ -463,7 +454,7 @@ public sealed class OfflineCache
 
         lock (_lock)
         {
-            State.Pending.Add(change.TenantId is null ? change with { TenantId = _tenant } : change);
+            State.Pending.Add(change with { TenantId = tenant });
             Persist();
         }
 

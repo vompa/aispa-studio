@@ -136,6 +136,25 @@ public sealed class QuickSwitchTests
         Assert.Contains("Leerlaufzeit", main.StatusText, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(HttpStatusCode.InternalServerError)]
+    [InlineData(HttpStatusCode.ServiceUnavailable)]
+    public async Task Fehler_beim_Pruefen_des_Empfangsgeraets_nennt_den_HTTP_Status(HttpStatusCode status)
+    {
+        var session = new MemorySessionStore();
+        session.Save("test-session");
+        var device = new MemorySessionStore();
+        device.Save("test-device");
+        var server = Api().On("GET /api/auth/me", TestData.Reception()).On("GET /api/auth/quick-switch", null, status);
+        var api = new ApiClient(new Uri("http://localhost/"), session, server, deviceStore: device);
+        var main = new MainViewModel(api);
+        await main.StartAsync();
+        Assert.Null(main.Content);
+        Assert.False(main.CanShowContent);
+        Assert.True(main.IsConnected);
+        Assert.Contains($"HTTP {(int)status}", main.StatusText, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Ohne_Empfangsgeraet_meldet_die_App_nicht_ab()
     {

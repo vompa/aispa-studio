@@ -37,6 +37,12 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
 
     protected override void OnSessionEnded() => Offline?.Clear();
 
+    protected override void OnSessionConfirmed(CurrentUser user)
+    {
+        Offline?.Put("api/auth/me", JsonSerializer.Serialize(user, Json));
+        Offline?.Flush();
+    }
+
     protected override void OnSharedDeviceChanged(SharedDeviceDto? device)
     {
         if (Offline is not null)
@@ -58,18 +64,34 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
     /// </summary>
     public override async Task<ApiResult<T>> GetAsync<T>(string path, CancellationToken ct = default)
     {
+        var version = SessionVersion;
         var result = await base.GetAsync<T>(path, ct).ConfigureAwait(false);
-        if (path == "api/auth/me" && result.Status is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+        lock (SessionLock)
         {
-            Offline?.ForgetSignIn();
-        }
+            if (!IsCurrentSession(version))
+            {
+                return new(default, "Die Anmeldung hat gewechselt.", HttpStatusCode.Conflict);
+            }
 
-        if (result.Ok && result.Value is QuickSwitchState state)
-        {
-            OnSharedDeviceChanged(state.Device);
-        }
+            if (path == "api/auth/me" && result.Status is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+            {
+                try
+                {
+                    RejectSession();
+                }
+                catch (IOException)
+                {
+                    return result with { Error = $"{result.Error} Der lokale Lesestand konnte nicht gelöscht werden." };
+                }
+            }
 
-        return result.Status == 0 ? Offline?.Read<T>(path) ?? result : result;
+            if (result.Ok && result.Value is QuickSwitchState state)
+            {
+                OnSharedDeviceChanged(state.Device);
+            }
+
+            return result.Status == 0 ? Offline?.Read<T>(path) ?? result : result;
+        }
     }
 
     /// <summary>
@@ -98,6 +120,8 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
     /// </summary>
     public async Task<ApiResult<CustomerDto>> CreateCustomerAsync(CustomerInput input, CancellationToken ct = default)
     {
+        var version = SessionVersion;
+        var tenant = Offline?.Tenant;
         input = input with { ClientId = input.ClientId ?? Guid.CreateVersion7() };
         var result = await PostAsync<CustomerDto>("api/customers", input, ct).ConfigureAwait(false);
         if (result.Status != 0 || Offline is null)
@@ -106,10 +130,17 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
         }
 
         var preview = new CustomerDto(input.ClientId!.Value, input.FirstName, input.LastName, input.Email, input.Phone, input.BirthDate, input.Note);
-        Offline.Put($"api/customers/{preview.Id}", JsonSerializer.Serialize(preview, Json));
-        Offline.Put($"api/customers/{preview.Id}/appointments", "[]");
-        Offline.Enqueue(new PendingChange(Guid.NewGuid(), "api/customers", JsonSerializer.Serialize(input, Json),
-            $"Neu angelegt: {input.FirstName} {input.LastName}", DateTimeOffset.UtcNow, null));
+        lock (SessionLock)
+        {
+            if (IsCurrentSession(version))
+            {
+                Offline.Put($"api/customers/{preview.Id}", JsonSerializer.Serialize(preview, Json));
+                Offline.Put($"api/customers/{preview.Id}/appointments", "[]");
+            }
+
+            Offline.EnqueueForTenant(new PendingChange(Guid.NewGuid(), "api/customers", JsonSerializer.Serialize(input, Json),
+                $"Neu angelegt: {input.FirstName} {input.LastName}", DateTimeOffset.UtcNow, null), tenant);
+        }
         return new(preview, null, 0) { Queued = true };
     }
 
