@@ -58,9 +58,9 @@ public partial class App : Application
             var viewModel = new MainViewModel(api, () => new LiveUpdates(api), theme: theme, local: local, facts: new SystemFacts())
             {
                 CloseApp = () => Dispatcher.UIThread.Post(() => desktop.Shutdown()),
-                Connect = local is null ? new NetworkConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) : null,
-                ServerConnect = local is null ? new ServerConnectViewModel(FileSettingsStore.Default, () => Restart(desktop)) : null,
-                ServerLink = local is null ? new ServerLinkViewModel(FileSettingsStore.Default, server, () => Restart(desktop)) : null,
+                Connect = local is null ? new NetworkConnectViewModel(FileSettingsStore.Default, () => Restart(desktop), forgetSignIn: api.ForgetSignIn) : null,
+                ServerConnect = local is null ? new ServerConnectViewModel(FileSettingsStore.Default, () => Restart(desktop), forgetSignIn: api.ForgetSignIn) : null,
+                ServerLink = local is null ? new ServerLinkViewModel(FileSettingsStore.Default, server, () => Restart(desktop), api.ForgetSignIn) : null,
                 StartChoice = local is null && showStartChoice ? new StartChoiceViewModel(FileSettingsStore.Default, demo => Restart(desktop, demo)) : null,
             };
             if (local is not null)

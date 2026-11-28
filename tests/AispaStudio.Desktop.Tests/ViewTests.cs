@@ -1,3 +1,4 @@
+using System.Runtime.Versioning;
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
@@ -5,6 +6,7 @@ using AispaStudio.Desktop.ViewModels;
 using AispaStudio.Desktop.Views;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Dialogs;
 using Avalonia.Headless;
 using Avalonia.Input;
 using Avalonia.Media;
@@ -18,6 +20,9 @@ namespace AispaStudio.Desktop.Tests;
 /// <summary>Startet die echte App ohne Bildschirm und zeichnet mit Skia, damit Ansichten wie unter Windows gerendert werden.</summary>
 public sealed class HeadlessApp
 {
+    [SupportedOSPlatform("linux")]
+    [SupportedOSPlatform("macos")]
+    [SupportedOSPlatform("windows")]
     public static AppBuilder BuildAvaloniaApp()
     {
         // Vor dem Start der App (sie liest die Einstellung in OnFrameworkInitializationCompleted): die Tests laufen immer mit „Animationen an“,
@@ -29,7 +34,8 @@ public sealed class HeadlessApp
         return AppBuilder.Configure<App>()
             .UseSkia()
             .WithInterFont()
-            .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
+            .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })
+            .UseManagedSystemDialogs();
     }
 }
 
@@ -39,7 +45,8 @@ public sealed class HeadlessApp
 /// </summary>
 public sealed partial class ViewTests
 {
-    private static readonly HeadlessUnitTestSession Session = HeadlessUnitTestSession.StartNew(typeof(HeadlessApp));
+    // Avalonia hält App und Plattform pro Prozess: Auch Dateidialogtests müssen denselben UI-Thread verwenden.
+    internal static readonly HeadlessUnitTestSession Session = HeadlessUnitTestSession.StartNew(typeof(HeadlessApp));
 
     private sealed class SampleTime : TimeProvider
     {

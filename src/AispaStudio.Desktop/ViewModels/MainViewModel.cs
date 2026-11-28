@@ -84,17 +84,6 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         }
 
         IsIdleSigningOut = true;
-        IdleSecondsLeft = null;
-        User = null;
-        Content = null;
-        // Ein noch speichernder Dialog gehört zur abgemeldeten Person und darf später nicht über der Anmeldung erscheinen.
-        var dialog = DialogHost.Current;
-        DialogHost = new();
-        if (dialog?.CancelCommand.CanExecute(null) == true)
-        {
-            dialog.CancelCommand.Execute(null);
-        }
-
         try
         {
             await shell.SignOutCommand.ExecuteAsync(null).ConfigureAwait(true);
@@ -231,9 +220,7 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
                 IsConnected = true;
             }
 
-            StatusText = status is null
-                ? "Leere Antwort."
-                : $"Verbunden · Version {status.Version.Split('+')[0]} · {status.Environment}";
+            StatusText = status is null ? "Leere Antwort." : ConnectedText(status);
             return;
         }
     }
@@ -251,6 +238,8 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
         await Task.Delay(ProbeInterval, _time).ConfigureAwait(true);
         return true;
     }
+
+    private static string ConnectedText(SystemStatus status) => $"Verbunden · Version {status.Version.Split('+')[0]} · {status.Environment}";
 
     /// <summary>Beim Start: mit gemerkter Anmeldung direkt in den Kalender, sonst zur Anmeldung. Solange steht der Startbildschirm.</summary>
     [RelayCommand]
@@ -373,16 +362,47 @@ public partial class MainViewModel(IWorkstationApi api, Func<ILiveUpdates>? live
     [RelayCommand]
     private async Task SignOutAsync()
     {
-        await api.SignOutAsync().ConfigureAwait(true);
-        User = null;
-        await ShowLoginAsync().ConfigureAwait(true);
+        // Bei Leerlauf umfasst die äußere Sperre auch den noch laufenden Geräteabbau der Shell.
+        var idleSignOut = IsIdleSigningOut;
+        IsIdleSigningOut = true;
+        try
+        {
+            IdleSecondsLeft = null;
+            User = null;
+            Content = null;
+            // Ein noch speichernder Dialog gehört zur abgemeldeten Person und darf später nicht über der Anmeldung erscheinen.
+            var dialog = DialogHost.Current;
+            DialogHost = new();
+            if (dialog?.CancelCommand.CanExecute(null) == true)
+            {
+                dialog.CancelCommand.Execute(null);
+            }
+
+            await api.SignOutAsync().ConfigureAwait(true);
+            await ShowLoginAsync().ConfigureAwait(true);
+        }
+        finally
+        {
+            IsIdleSigningOut = idleSignOut;
+        }
     }
 
     private async Task ShowLoginAsync()
     {
         var login = new LoginViewModel(api, ShowShellAsync) { Restore = Restore, Join = Join };
         Content = login;
-        await login.LoadAsync().ConfigureAwait(true);
+        var result = await login.LoadAsync().ConfigureAwait(true);
+        IsConnected = result.Value is not null;
+        if (result.Value is { } status)
+        {
+            StatusText = ConnectedText(status);
+        }
+        else
+        {
+            ConnectionTitle = local is null ? NoConnectionTitle : StartingTitle;
+            StatusText = result.Error ?? "Leere Antwort.";
+        }
+
         Device = login.Device;
     }
 

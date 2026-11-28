@@ -9,7 +9,8 @@ namespace AispaStudio.Desktop.ViewModels;
 /// </summary>
 /// <param name="current">Die beim Start gewählte Verbindung.</param>
 /// <param name="restart">Startet die App neu, damit sie ohne den Eintrag arbeitet.</param>
-public partial class ServerLinkViewModel(ISettingsStore settings, ServerChoice.Choice current, Action restart) : ViewModelBase
+/// <param name="forgetSignIn">Widerruft den lokalen Zugang zum bisherigen Server.</param>
+public partial class ServerLinkViewModel(ISettingsStore settings, ServerChoice.Choice current, Action restart, Action? forgetSignIn = null) : ViewModelBase
 {
     public string Text => current.Source switch
     {
@@ -22,9 +23,30 @@ public partial class ServerLinkViewModel(ISettingsStore settings, ServerChoice.C
     private bool CanRelease => current.Source is ServerSource.Server or ServerSource.MainPc;
 
     [RelayCommand(CanExecute = nameof(CanRelease))]
-    private void Release()
+    private void Release() => ConnectionSettings.Change(settings, null, null, forgetSignIn, restart);
+}
+
+internal static class ConnectionSettings
+{
+    // Beide Startkarten und die Seite „Netz“ wechseln dasselbe Ziel im selben lokalen Profil.
+    internal static void Change(ISettingsStore settings, Uri? address, string? code, Action? forgetSignIn, Action restart, Action<string>? showError = null)
     {
-        settings.Save(settings.Load() with { ServerAddress = null, ServerCode = null });
+        var previous = settings.Load();
+        var updated = previous with { ServerAddress = address?.ToString(), ServerCode = code };
+        if (ServerChoice.Resolve(previous, null) != ServerChoice.Resolve(updated, null))
+        {
+            try
+            {
+                forgetSignIn?.Invoke();
+            }
+            catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+            {
+                showError?.Invoke("Die bisherige Anmeldung konnte nicht vollständig entfernt werden. Die Serververbindung wurde nicht geändert.");
+                throw;
+            }
+        }
+
+        settings.Save(updated);
         restart();
     }
 }

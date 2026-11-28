@@ -379,7 +379,7 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     private bool _startupPending;
 
     /// <summary>Betriebsart, Einrichtungsstand, Empfangsgerät und Testkonten laden.</summary>
-    public async Task LoadAsync()
+    public async Task<ApiResult<SystemStatus>> LoadAsync()
     {
         var modules = await api.GetAsync<SystemModules>("api/system/modules").ConfigureAwait(true);
         IsStandalone = modules.Value?.Standalone == true;
@@ -395,11 +395,13 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
         }
 
         await LoadQuickSwitchAsync().ConfigureAwait(true);
-        await RefreshStartupAsync().ConfigureAwait(true);
+        var status = await RefreshStartupAsync().ConfigureAwait(true);
         if (_startupPending && StartupPoll > TimeSpan.Zero)
         {
             _ = WaitForStartupAsync();
         }
+
+        return status;
     }
 
     /// <summary>
@@ -407,9 +409,10 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
     /// leer, weil das Beispiel-Spa noch eingespielt wird. Auch bei bereitem Start kann ein Hinweis dastehen, z. B. abgelaufene
     /// Beispieldaten (T-091); die Testkonten laden dann trotzdem.
     /// </summary>
-    public async Task RefreshStartupAsync()
+    public async Task<ApiResult<SystemStatus>> RefreshStartupAsync()
     {
-        var status = (await api.GetAsync<SystemStatus>("api/system/status").ConfigureAwait(true)).Value;
+        var result = await api.GetAsync<SystemStatus>("api/system/status").ConfigureAwait(true);
+        var status = result.Value;
         var startup = status?.Environment == "Development" || IsDemo ? status?.Startup : null;
         _startupPending = startup is { Phase: not StartupPhase.Ready };
         StartupNotice = startup is null || startup is { Phase: StartupPhase.Ready, Text: StartupInfo.ReadyText } ? null : startup.Text;
@@ -418,6 +421,8 @@ public partial class LoginViewModel(IWorkstationApi api, Func<CurrentUser, Task>
         {
             await LoadTestAccountsAsync().ConfigureAwait(true);
         }
+
+        return result;
     }
 
     private async Task WaitForStartupAsync()

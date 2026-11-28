@@ -1,15 +1,11 @@
 using System.Net;
-using System.Runtime.Versioning;
 using System.Text.Json;
 using AispaStudio.Contracts;
 using AispaStudio.Desktop.Controls;
 using AispaStudio.Desktop.Services;
 using AispaStudio.Desktop.ViewModels;
 using AispaStudio.Desktop.Views;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Dialogs;
-using Avalonia.Headless;
 
 namespace AispaStudio.Desktop.Tests;
 
@@ -55,7 +51,7 @@ public sealed class DocumentActionsTests
     [Fact]
     public async Task PDF_Speichern_oeffnet_nach_erneuter_Navigation_den_Dialog_am_aktuellen_Fenster()
     {
-        await FileDialogSession.Current.Dispatch(async () =>
+        await ViewTests.Session.Dispatch(async () =>
         {
             var model = new DocumentActionsViewModel(Source(), Api().Client(), null);
             var first = new DocumentActions { DataContext = model };
@@ -87,7 +83,7 @@ public sealed class DocumentActionsTests
     }
 
     [Fact]
-    public Task PDF_Speichern_respektiert_das_explizite_native_Zielfenster() => FileDialogSession.Current.Dispatch(async () =>
+    public Task PDF_Speichern_respektiert_das_explizite_native_Zielfenster() => ViewTests.Session.Dispatch(async () =>
     {
         var intended = new Window();
         var shown = new Window();
@@ -112,7 +108,7 @@ public sealed class DocumentActionsTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public Task Management_PDF_Speichern_oeffnet_nach_erneuter_Navigation_den_Dialog(bool alreadyLoaded) => FileDialogSession.Current.Dispatch(async () =>
+    public Task Management_PDF_Speichern_oeffnet_nach_erneuter_Navigation_den_Dialog(bool alreadyLoaded) => ViewTests.Session.Dispatch(async () =>
     {
         var reports = ReportsWithOctoberPdf();
         var first = new ReportsView { DataContext = reports };
@@ -146,7 +142,7 @@ public sealed class DocumentActionsTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public Task Management_PDF_uebernimmt_den_gewechselten_Speicheradapter_bei_geerbtem_Ziel(bool individual) => FileDialogSession.Current.Dispatch(async () =>
+    public Task Management_PDF_uebernimmt_den_gewechselten_Speicheradapter_bei_geerbtem_Ziel(bool individual) => ViewTests.Session.Dispatch(async () =>
     {
         var reports = ReportsWithOctoberPdf();
         var window = new Window { Content = new ReportsView { DataContext = reports } };
@@ -207,19 +203,6 @@ public sealed class DocumentActionsTests
         {
             await Task.Delay(10, TestContext.Current.CancellationToken);
         }
-    }
-
-    private static class FileDialogSession
-    {
-        internal static readonly HeadlessUnitTestSession Current = HeadlessUnitTestSession.StartNew(typeof(FileDialogApp));
-    }
-
-    public sealed class FileDialogApp
-    {
-        [SupportedOSPlatform("linux")]
-        [SupportedOSPlatform("macos")]
-        [SupportedOSPlatform("windows")]
-        public static AppBuilder BuildAvaloniaApp() => HeadlessApp.BuildAvaloniaApp().UseManagedSystemDialogs();
     }
 
     [Fact]

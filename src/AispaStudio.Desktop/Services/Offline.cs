@@ -241,8 +241,17 @@ public sealed class OfflineCache
             {
                 if (State.SharedDevice != value)
                 {
-                    _state = State with { SharedDevice = value };
-                    Persist();
+                    var previous = State;
+                    _state = previous with { SharedDevice = value };
+                    try
+                    {
+                        Persist();
+                    }
+                    catch
+                    {
+                        _state = previous;
+                        throw;
+                    }
                 }
             }
         }

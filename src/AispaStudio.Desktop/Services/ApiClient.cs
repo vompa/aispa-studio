@@ -37,6 +37,15 @@ public sealed class ApiClient : HttpApiClient, IWorkstationApi
     /// <summary>Der lokale Sitzungswiderruf konnte nicht vollständig gespeichert werden.</summary>
     public event Action<Exception>? LocalStateFailed;
 
+    /// <summary>Widerruft beim Lösen der Serververbindung den lokalen Zugang vor dem Neustart.</summary>
+    public void ForgetSignIn()
+    {
+        lock (SessionLock)
+        {
+            RejectSession();
+        }
+    }
+
     protected override void OnSessionEnded() => Offline?.Clear();
 
     protected override void OnSessionConfirmed(CurrentUser user)

@@ -52,6 +52,46 @@ public sealed class OfflineTests
         Assert.NotNull((await api.GetAsync<List<ReceiptDto>>(normal, ct)).CachedAt);
     }
 
+    private sealed class RetryStore : IOfflineStore
+    {
+        private readonly MemoryOfflineStore _store = new();
+        public bool FailNextSave { get; set; }
+        public OfflineState Load() => _store.Load();
+        public void Clear() => _store.Clear();
+
+        public void Save(OfflineState state)
+        {
+            if (FailNextSave)
+            {
+                FailNextSave = false;
+                throw new IOException("Test: Speichern unterbrochen");
+            }
+
+            _store.Save(state);
+        }
+    }
+
+    [Fact]
+    public async Task Geraetevorgabe_ist_nach_Schreibfehler_mit_gleicher_Serverantwort_erneut_speicherbar()
+    {
+        var store = new RetryStore();
+        var previous = QuickSwitchTests.Device with { IdleMinutes = 15 };
+        var updated = previous with { IdleMinutes = 2 };
+        var offline = new OfflineCache(store) { SharedDevice = previous };
+        var api = new StubApi().On("GET /api/auth/quick-switch", new QuickSwitchState(updated, [])).Client(offline);
+        store.FailNextSave = true;
+
+        await Assert.ThrowsAsync<IOException>(() => api.GetAsync<QuickSwitchState>("api/auth/quick-switch", Ct));
+        var afterFailure = offline.SharedDevice;
+        var confirmed = await api.GetAsync<QuickSwitchState>("api/auth/quick-switch", Ct);
+        offline.Flush();
+
+        Assert.Equal(HttpStatusCode.OK, confirmed.Status);
+        Assert.Equal(updated, confirmed.Value?.Device);
+        Assert.Equal(updated, new OfflineCache(store).SharedDevice);
+        Assert.Equal(previous, afterFailure);
+    }
+
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     private sealed class SampleTime : TimeProvider

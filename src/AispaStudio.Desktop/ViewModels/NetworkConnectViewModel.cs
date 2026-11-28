@@ -11,8 +11,9 @@ namespace AispaStudio.Desktop.ViewModels;
 /// </summary>
 /// <param name="probe">Prüft Adresse und Code; gibt <c>null</c> zurück, wenn der Haupt-PC antwortet, sonst die Meldung.</param>
 /// <param name="restart">Startet die App neu, damit sie mit der neuen Adresse arbeitet.</param>
+/// <param name="forgetSignIn">Widerruft den lokalen Zugang bei einem Wechsel des Verbindungsziels.</param>
 public partial class NetworkConnectViewModel(ISettingsStore settings, Action restart,
-    Func<Uri, string, CancellationToken, Task<string?>>? probe = null) : ViewModelBase
+    Func<Uri, string, CancellationToken, Task<string?>>? probe = null, Action? forgetSignIn = null) : ViewModelBase
 {
     private readonly Func<Uri, string, CancellationToken, Task<string?>> _probe = probe ?? ProbeAsync;
 
@@ -66,18 +67,16 @@ public partial class NetworkConnectViewModel(ISettingsStore settings, Action res
 
         if (Error is null)
         {
-            settings.Save(settings.Load() with { ServerAddress = address.ToString(), ServerCode = code });
-            restart();
+            SaveConnection(address, code);
         }
     }
 
     /// <summary>Zurück zum Server aus der Voreinstellung (z. B. nach einem Umzug auf einen echten Server).</summary>
     [RelayCommand]
-    private void Forget()
-    {
-        settings.Save(settings.Load() with { ServerAddress = null, ServerCode = null });
-        restart();
-    }
+    private void Forget() => SaveConnection(null, null);
+
+    private void SaveConnection(Uri? address, string? code) =>
+        ConnectionSettings.Change(settings, address, code, forgetSignIn, restart, message => Error = message);
 
     /// <summary>Fragt den Status ab, nur mit dem Zertifikat zum Code.</summary>
     public static async Task<string?> ProbeAsync(Uri address, string code, CancellationToken ct)

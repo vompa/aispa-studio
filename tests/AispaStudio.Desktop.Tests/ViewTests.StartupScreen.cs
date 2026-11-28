@@ -180,9 +180,10 @@ public sealed partial class ViewTests
     }, CancellationToken.None);
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public Task Startbildschirm_offline_am_Empfangsgeraet_warnt_und_sperrt_die_Arbeitsflaeche_nach_Leerlauf(bool serverReturns) => Session.Dispatch(async () =>
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public Task Startbildschirm_offline_am_Empfangsgeraet_warnt_und_sperrt_die_Arbeitsflaeche_nach_Leerlauf(bool serverReturns, bool statusTimesOut) => Session.Dispatch(async () =>
     {
         var time = new StoppedTime();
         var store = new MemoryOfflineStore();
@@ -215,7 +216,12 @@ public sealed partial class ViewTests
 
             var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             stub.Down = !serverReturns;
-            stub.On("POST /api/auth/logout", null);
+            stub.On("POST /api/auth/logout", null, HttpStatusCode.NoContent);
+            if (statusTimesOut)
+            {
+                stub.OnJson("GET /api/system/status", _ => throw new TaskCanceledException("Test: Status antwortet nicht"));
+            }
+
             stub.Hold("POST /api/auth/logout", release.Task);
             time.Advance(TimeSpan.FromSeconds(20));
             var signingOut = main.TickAsync();
@@ -250,7 +256,76 @@ public sealed partial class ViewTests
             Assert.False(main.IsSignedIn);
             Assert.Null(session.Load());
             Assert.DoesNotContain(window.GetVisualDescendants().OfType<ShellView>(), shell => shell.IsEffectivelyVisible);
-            Assert.True(window.GetVisualDescendants().OfType<StartupScreen>().Single().IsEffectivelyVisible);
+            var loginReachable = serverReturns && !statusTimesOut;
+            Assert.Equal(loginReachable, main.IsConnected);
+            Assert.Equal(loginReachable, window.FindControl<ContentControl>("Main")!.IsEffectivelyVisible);
+            Assert.Equal(loginReachable, window.GetVisualDescendants().OfType<LoginView>().Any(view => view.IsEffectivelyVisible));
+            var screen = window.GetVisualDescendants().OfType<StartupScreen>().Single();
+            var offlineCard = screen.GetVisualDescendants().OfType<Border>().Single(b => b.Name == "OfflineCard");
+            Assert.Equal(!loginReachable, offlineCard.IsEffectivelyVisible);
+        }
+        finally
+        {
+            window.Close();
+        }
+
+        return true;
+    }, CancellationToken.None);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Manuelles_Abmelden_schliesst_die_Offline_Arbeitsflaeche_vor_der_Serverantwort(bool saveFails) => Session.Dispatch(async () =>
+    {
+        var time = new StoppedTime();
+        var store = new MemoryOfflineStore();
+        var session = new MemorySessionStore();
+        session.Save("test-session");
+        var cache = new OfflineCache(store, time);
+        var stub = Api();
+        await new MainViewModel(stub.Client(cache, session), time: time).StartAsync();
+        cache.Flush();
+        stub.Down = true;
+        var main = new MainViewModel(stub.Client(new OfflineCache(store, time), session), time: time);
+        var window = new MainWindow { DataContext = main };
+        window.Show();
+        try
+        {
+            await main.StartAsync();
+            await Pump();
+            var shell = Assert.IsType<ShellViewModel>(main.Content);
+            Assert.Contains(window.GetVisualDescendants().OfType<ShellView>(), view => view.IsEffectivelyVisible);
+            var prompt = main.DialogHost.AskAsync(new ConfirmRequest("Termin stornieren?", "Der Termin entfällt.", "Stornieren"));
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            stub.Down = false;
+            stub.On("POST /api/auth/logout", null, HttpStatusCode.NoContent).Hold("POST /api/auth/logout", release.Task);
+            var logout = shell.SignOutCommand.ExecuteAsync(null);
+            await PumpUntil(() => stub.Calls.Any(call => call.Route == "POST /api/auth/logout"));
+            main.NoteActivity();
+            await main.TickAsync();
+            await Pump();
+            var stillOpen = main.IsSignedIn || main.Content is ShellViewModel || main.DialogHost.HasDialog
+                || window.FindControl<ContentControl>("Main")!.IsEffectivelyVisible;
+            var locallyRevoked = session.Load() is null;
+            if (saveFails)
+            {
+                release.SetException(new IOException("Test: Abschluss fehlgeschlagen"));
+                await Assert.ThrowsAsync<IOException>(() => logout);
+            }
+            else
+            {
+                release.SetResult();
+                await logout;
+            }
+
+            await Pump();
+            Assert.True(locallyRevoked);
+            Assert.False(stillOpen);
+            Assert.True(prompt.IsCompleted);
+            Assert.Equal(ConfirmChoice.Cancelled, (await prompt).Choice);
+            Assert.False(main.IsSignedIn);
+            Assert.False(main.DialogHost.HasDialog);
+            Assert.DoesNotContain(window.GetVisualDescendants().OfType<ShellView>(), view => view.IsEffectivelyVisible);
         }
         finally
         {
