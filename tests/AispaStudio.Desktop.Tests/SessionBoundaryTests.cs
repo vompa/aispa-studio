@@ -104,6 +104,32 @@ public sealed class SessionBoundaryTests
         Assert.False(restarted.IsSignedIn);
     }
 
+    private sealed class FailedSessionClear(ISessionStore original) : ISessionStore
+    {
+        public IOException Failure { get; } = new("Sitzungsspeicher ist gesperrt.");
+        public string? Load() => original.Load();
+        public void Save(string cookie) => original.Save(cookie);
+        public void Clear() => throw Failure;
+    }
+
+    [Fact]
+    public async Task Abmelden_loescht_den_Lesestand_auch_wenn_der_Sitzungsspeicher_gesperrt_ist()
+    {
+        var store = new MemoryOfflineStore();
+        var (session, cache) = Seed(store);
+        var locked = new FailedSessionClear(session);
+        var api = new StubApi().Client(cache, locked);
+
+        var error = await Assert.ThrowsAsync<IOException>(() => api.SignOutAsync(Ct));
+
+        Assert.Same(locked.Failure, error);
+        var reopened = new OfflineCache(store);
+        Assert.Null(reopened.Get(Identity));
+        Assert.Null(reopened.Get(Customer));
+        Assert.Null(api.SessionCookie);
+        Assert.Equal(QuickSwitchTests.Device, reopened.SharedDevice);
+    }
+
     [Fact]
     public async Task Fehler_beim_Wechsel_laesst_keine_gemerkte_Anmeldung_zurueck()
     {
@@ -199,6 +225,81 @@ public sealed class SessionBoundaryTests
         Assert.False(early);
         Assert.True(api.SessionCookie == "next" && session.Load() == "next");
         Assert.Equal("next", new OfflineCache(store).Read<CurrentUser>(Identity)?.Value?.Id);
+    }
+
+    [Fact]
+    public async Task Geraeteanmeldung_am_Empfang_bleibt_beim_globalen_Abmelden_erhalten()
+    {
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var address = new Uri($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/");
+        var store = new MemoryOfflineStore();
+        var (session, cache) = Seed(store);
+        cache.SharedDevice = null;
+        var deviceStore = new MemorySessionStore();
+        var api = new ApiClient(address, session, offline: cache, deviceStore: deviceStore);
+        using var shell = new ShellViewModel(api, TestData.Owner(), null, TimeProvider.System, new ThemeController(new MemorySettingsStore()),
+            "", () => api.SignOutAsync(Ct));
+        shell.Devices.DeviceLocation = TestData.Location;
+        Assert.True(shell.Devices.RegisterDeviceCommand.CanExecute(null));
+        var registration = shell.Devices.RegisterDeviceCommand.ExecuteAsync(null);
+        using var registering = await listener.AcceptTcpClientAsync(Ct);
+        await ReadHeadersAsync(registering);
+
+        Assert.True(shell.SignOutCommand.CanExecute(null));
+        var logout = shell.SignOutCommand.ExecuteAsync(null);
+        var persistedSignIn = session.Load() is not null;
+        await RespondAsync(registering, JsonSerializer.Serialize(QuickSwitchTests.Device, ApiClient.Json), "aispa.device=registered; Path=/");
+        await registration;
+        using var ending = await listener.AcceptTcpClientAsync(Ct);
+        await ReadHeadersAsync(ending);
+        await RespondAsync(ending, "", "aispa.auth=; Max-Age=0; Path=/");
+        await logout;
+
+        Assert.False(persistedSignIn);
+        Assert.Null(shell.Devices.DeviceError);
+        Assert.True(api.HasDeviceCookie);
+        Assert.NotNull(deviceStore.Load());
+        Assert.Equal(QuickSwitchTests.Device, new OfflineCache(store).SharedDevice);
+    }
+
+    [Fact]
+    public async Task Geraet_neu_anmelden_uebersteht_die_Antwort_des_vorigen_Widerrufs()
+    {
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var address = new Uri($"http://127.0.0.1:{((IPEndPoint)listener.LocalEndpoint).Port}/");
+        var deviceStore = new MemorySessionStore();
+        deviceStore.Save("old-device");
+        var store = new MemoryOfflineStore();
+        var (session, cache) = Seed(store);
+        var api = new ApiClient(address, session, offline: cache, deviceStore: deviceStore);
+        var revoke = api.RevokeDeviceAsync(Ct);
+        using var previous = await listener.AcceptTcpClientAsync(Ct);
+        await ReadHeadersAsync(previous);
+        var replacement = QuickSwitchTests.Device with { IdleMinutes = 10 };
+        var register = api.RegisterDeviceAsync(new("Empfang", TestData.Location.Id, replacement.IdleMinutes), Ct);
+        var arrival = listener.AcceptTcpClientAsync(Ct).AsTask();
+        var overlap = await Task.WhenAny(arrival, Task.Delay(TimeSpan.FromMilliseconds(250), Ct)) == arrival;
+        if (!overlap)
+        {
+            await RespondAsync(previous, "", "aispa.device=; Max-Age=0; Path=/");
+            await revoke;
+        }
+
+        using var latest = await arrival;
+        await ReadHeadersAsync(latest);
+        await RespondAsync(latest, JsonSerializer.Serialize(replacement, ApiClient.Json), "aispa.device=current-device; Path=/");
+        Assert.True((await register).Ok);
+        if (overlap)
+        {
+            await RespondAsync(previous, "", "aispa.device=; Max-Age=0; Path=/");
+        }
+
+        Assert.True((await revoke).Ok);
+        Assert.True(api.HasDeviceCookie);
+        Assert.True(deviceStore.Load() == "current-device");
+        Assert.Equal(replacement, new OfflineCache(store).SharedDevice);
     }
 
     private sealed class HeldTerminalPoll(StubApi server) : DelegatingHandler(server)

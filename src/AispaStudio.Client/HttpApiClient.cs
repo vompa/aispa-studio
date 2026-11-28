@@ -161,7 +161,7 @@ public class HttpApiClient : IAispaApi
         {
             lock (SessionLock)
             {
-                return _pendingLogouts == 0 ? _transport.Cookies.GetCookies(BaseAddress)[CookieName]?.Value ?? _store.Load() : null;
+                return _pendingLogouts == 0 ? _transport.Cookies.GetCookies(BaseAddress)[CookieName]?.Value : null;
             }
         }
     }
@@ -271,38 +271,55 @@ public class HttpApiClient : IAispaApi
     }
 
     /// <summary>Diesen PC als Empfangsgerät eines Standorts anmelden; das Kennzeichen wird verschlüsselt gemerkt.</summary>
-    public async Task<ApiResult<SharedDeviceDto>> RegisterDeviceAsync(SharedDeviceInput input, CancellationToken ct = default)
-    {
-        var result = await SendAsync<SharedDeviceDto>(HttpMethod.Post, "api/auth/shared-device", input, ct).ConfigureAwait(false);
-        if (result.Ok && _transport.Cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
-        {
-            _deviceStore.Save(cookie.Value);
-        }
-
-        if (result.Ok && result.Value is { } device)
-        {
-            OnSharedDeviceChanged(device);
-        }
-
-        return result;
-    }
+    public Task<ApiResult<SharedDeviceDto>> RegisterDeviceAsync(SharedDeviceInput input, CancellationToken ct = default) =>
+        ChangeDeviceAsync<SharedDeviceDto>(HttpMethod.Post, input, ct);
 
     /// <summary>Dieser PC ist kein Empfangsgerät mehr.</summary>
-    public async Task<ApiResult<object>> RevokeDeviceAsync(CancellationToken ct = default)
+    public Task<ApiResult<object>> RevokeDeviceAsync(CancellationToken ct = default) =>
+        ChangeDeviceAsync<object>(HttpMethod.Delete, null, ct);
+
+    private async Task<ApiResult<T>> ChangeDeviceAsync<T>(HttpMethod method, SharedDeviceInput? input, CancellationToken ct)
     {
-        var result = await SendAsync<object>(HttpMethod.Delete, "api/auth/shared-device", null, ct).ConfigureAwait(false);
-        if (result.Ok)
+        var (turn, finished) = ReserveCookieChange();
+        await turn.ConfigureAwait(false);
+        try
         {
-            if (_transport.Cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
+            using var active = CurrentTransport();
+            var result = await SendAsync<T>(method, "api/auth/shared-device", input, active, SessionVersion, ct).ConfigureAwait(false);
+            if (result.Ok)
             {
-                cookie.Expired = true;
+                lock (SessionLock)
+                {
+                    if (result.Value is SharedDeviceDto device)
+                    {
+                        if (active.Cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
+                        {
+                            // Eine lokale Abmeldung darf schon begonnen haben. Das bestätigte Gerätekennzeichen bleibt am PC.
+                            _transport.Cookies.Add(BaseAddress, cookie);
+                            _deviceStore.Save(cookie.Value);
+                        }
+
+                        OnSharedDeviceChanged(device);
+                    }
+                    else if (method == HttpMethod.Delete)
+                    {
+                        if (_transport.Cookies.GetCookies(BaseAddress)[DeviceCookieName] is { } cookie)
+                        {
+                            cookie.Expired = true;
+                        }
+
+                        _deviceStore.Clear();
+                        OnSharedDeviceChanged(null);
+                    }
+                }
             }
 
-            _deviceStore.Clear();
-            OnSharedDeviceChanged(null);
+            return result;
         }
-
-        return result;
+        finally
+        {
+            finished.SetResult();
+        }
     }
 
     protected void RejectSession()
@@ -314,7 +331,24 @@ public class HttpApiClient : IAispaApi
 
     private void ClearRememberedSession()
     {
-        _store.Clear();
+        try
+        {
+            _store.Clear();
+        }
+        catch (IOException sessionError)
+        {
+            try
+            {
+                OnSessionEnded();
+            }
+            catch (IOException cacheError)
+            {
+                throw new IOException("Sitzung und lokaler Lesestand konnten nicht gelöscht werden.", new AggregateException(sessionError, cacheError));
+            }
+
+            throw;
+        }
+
         OnSessionEnded();
     }
 
