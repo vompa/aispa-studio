@@ -890,10 +890,18 @@ public sealed class PosTests(ApiFixture fixture)
         device.SetFailing(register.Id, false);
 
         Assert.Equal(ReceiptKind.Closing, (await pos.DecommissionAsync(register.Id, Ct)).Value!.Kind);
-        var closed = await pos.RegisterDtoAsync(await db.CashRegisters.AsNoTracking().SingleAsync(r => r.Id == register.Id, Ct), Ct);
+        var inactive = await db.CashRegisters.AsNoTracking().SingleAsync(r => r.Id == register.Id, Ct);
+        var closed = await pos.RegisterDtoAsync(inactive, Ct);
         Assert.False(closed.IsActive);
         Assert.Equal(new YearlyReceiptStatusDto(2026, null, false, false), closed.YearlyReceipt);
-        Assert.DoesNotContain(closed.Warnings, w => w.Contains("Jahresbeleg 2026", StringComparison.Ordinal));
+        foreach (var date in new[] { new DateOnly(2027, 11, 30), new(2027, 12, 1), new(2028, 1, 2) })
+        {
+            clock.Now = new(date, new TimeOnly(10, 0), TimeSpan.Zero);
+            var later = await pos.RegisterDtoAsync(inactive, Ct);
+            var visible = later.PendingYearlyReceipts!.Append(later.YearlyReceipt).OfType<YearlyReceiptStatusDto>();
+            Assert.Equal(closed.YearlyReceipt, Assert.Single(visible));
+            Assert.DoesNotContain(later.Warnings, w => w.Contains("Jahresbeleg 2026", StringComparison.Ordinal));
+        }
     }
 
     [Fact]

@@ -122,6 +122,10 @@ internal sealed partial class PosService
             {
                 status = new(year, receipt, confirmation is not null, canCreate);
             }
+            else if (receipt is null)
+            {
+                pending.Add(new(year, null, false, false));
+            }
         }
         return (status, confirmations, warnings, pending);
     }
