@@ -176,22 +176,38 @@ public sealed partial class RegistersViewModel(IWorkstationApi api, ToastState t
         IsLoading = true;
         try
         {
+            ApiResult<List<LocationDto>>? locations = null;
             while (true)
             {
                 var version = _registerVersion;
                 var registersTask = api.GetAsync<List<CashRegisterDto>>("api/pos/registers");
-                var locationsTask = api.GetAsync<List<LocationDto>>("api/locations");
-                await Task.WhenAll(registersTask, locationsTask).ConfigureAwait(true);
+                var reuseLocations = locations is { Ok: true, CachedAt: null, Value: not null };
+                if (!reuseLocations)
+                {
+                    var locationsTask = api.GetAsync<List<LocationDto>>("api/locations");
+                    await Task.WhenAll(registersTask, locationsTask).ConfigureAwait(true);
+                    locations = await locationsTask.ConfigureAwait(true);
+                }
+
                 var registers = await registersTask.ConfigureAwait(true);
-                var locations = await locationsTask.ConfigureAwait(true);
                 if (version != _registerVersion)
                 {
                     continue;
                 }
 
-                if (registers.Value is null || locations.Value is null)
+                if (reuseLocations && locations?.Value is { } loadedLocations && registers.Value is { } loadedRegisters
+                    && loadedRegisters.Any(register => !loadedLocations.Exists(location => location.Id == register.LocationId)))
                 {
-                    LoadError = registers.Error ?? locations.Error ?? "Der aktuelle Kassenstand wurde nicht geladen.";
+                    locations = await api.GetAsync<List<LocationDto>>("api/locations").ConfigureAwait(true);
+                    if (version != _registerVersion)
+                    {
+                        continue;
+                    }
+                }
+
+                if (registers.Value is null || locations?.Value is null)
+                {
+                    LoadError = registers.Error ?? locations?.Error ?? "Der aktuelle Kassenstand wurde nicht geladen.";
                     return;
                 }
 

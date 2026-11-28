@@ -12,14 +12,19 @@ public sealed partial class ViewTests
     private const string RegisterSetupRoute = "GET /api/pos/setup";
     private const string CreateRegisterRoute = "POST /api/pos/registers";
 
-    [Fact]
-    public Task Register_creation_reloads_after_inflight_register_list()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public Task Register_creation_reloads_after_inflight_register_list(bool newLocation)
     {
-        var register = SpaSample.Register;
+        var location = newLocation ? SpaSample.Vienna with { Id = Guid.NewGuid(), Name = "Neuer Standort" } : SpaSample.Vienna;
+        var register = SpaSample.Register with { LocationId = location.Id };
         var gate = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var reads = 0;
+        const string LocationsRoute = "GET /api/locations";
         var stub = RegisterRefreshApi()
             .OnJson(RegistersRoute, _ => Interlocked.Increment(ref reads) == 1 ? Array.Empty<CashRegisterDto>() : new[] { register })
+            .On(CreateRegisterRoute, register with { Country = FiscalCountry.CH })
             .Hold(RegistersRoute, gate.Task);
         return Render("hell", "probe-kassenliste-nach-anlage", async (window, main) =>
         {
@@ -35,12 +40,17 @@ public sealed partial class ViewTests
             Assert.NotNull(wizard.Created);
             Assert.Single(stub.Calls, call => call.Route == CreateRegisterRoute);
 
+            var previousLocationReads = stub.Calls.Count(call => call.Route == LocationsRoute);
+            stub.On(LocationsRoute, new[] { location });
             gate.SetResult();
             await posting;
             await Pump(Settling);
 
             Assert.Equal(2, Volatile.Read(ref reads));
-            Assert.Equal(register.Id, Assert.Single(shell.AdminPage.Registers!.Rows).Register.Id);
+            var row = Assert.Single(shell.AdminPage.Registers!.Rows);
+            Assert.Equal(register.Id, row.Register.Id);
+            Assert.Equal(location.Name, row.Location);
+            Assert.Equal(previousLocationReads + (newLocation ? 1 : 0), stub.Calls.Count(call => call.Route == LocationsRoute));
             return shell;
         }, stub);
     }
