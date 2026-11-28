@@ -2207,3 +2207,20 @@ Expected: Die Inhaberin erhält das Prüfergebnis. Die Rezeption kann keine Anbi
 Expected: Kein Geheimnis wird zurückgelesen oder protokolliert. Nach Löschen bleiben die Daten gelöscht. Dieser Anbieterfall ist mit den eingebauten feldlosen Testanbietern nicht vor Ort ausführbar; die automatisierten Integrationstests verwenden dafür ausschließlich einen Testadapter.
 Closes: T-139 (ADR 0105, geschützte Zugangsdaten)
 Result: ☐
+
+### T-142 – Kassa-Assistent und eigene Karte
+Start: Isoliertes Test-Spa mit Standort, als Inhaberin oder Standortleitung. Für die allgemeinen Firmendaten als Inhaberin anmelden.
+1. „Verwaltung → Kassen“ öffnen und „Kassa anlegen“ wählen.
+Expected: Der eigene Assistent öffnet. Nur erlaubte Standorte stehen zur Wahl; „Zurück“ und „Schließen“ sind während der laufenden Anlage gesperrt.
+2. Österreich und danach Deutschland mit dem jeweiligen Testanbieter ausprobieren. Die Übungsbestätigung zunächst leer lassen und die Anlage versuchen.
+Expected: Ohne ausdrückliche Bestätigung wird keine Kassa angelegt. Nach Bestätigung und gültigen Daten entsteht genau eine Kassa mit Startbeleg und festem Übungshinweis. Erneutes Anlegen ist auf dem Abschluss nicht möglich.
+3. In der Schweiz eine echte Kassa ohne Signatureinrichtung anlegen; den Übungsweg gesondert ausprobieren.
+Expected: Die gewählte Art bleibt nach der Anlage unveränderlich. Für den Echtbetrieb einer bisher geübten Kassa wird eine neue Kassa mit neuer Kennung angelegt.
+4. Die Firmendaten erneut öffnen, die letzte bereite Kassa außer Betrieb nehmen und die Firmendaten wieder öffnen.
+Expected: Die eigene Karte wechselt von „Bereit“ zu „Offen“; bei einer verwendbaren Übungskassa zeigt sie „Übungsbetrieb“ und bleibt sichtbar.
+5. Einen Statusabruf im isolierten Test einmal scheitern lassen und danach die Firmendaten erneut öffnen.
+Expected: Der letzte erfolgreiche Kartenstand bleibt sichtbar, der Hinweis bietet Wiederholen. Nach Erholung wird der aktuelle Zustand angezeigt; eine erfolgreich angelegte Kassa wird nicht erneut angelegt.
+6. Den allgemeinen Assistenten „Betrieb einrichten“ öffnen.
+Expected: Er zählt fünf Schritte. Die Kassa hat ihre eigene Karte und ihren eigenen Assistenten.
+Closes: T-142 (ADR 0105, eigener Assistent und Karte)
+Result: ☐
